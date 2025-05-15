@@ -1,6 +1,6 @@
 ## Devvit Three.js Starter Experimental
 
-https://github.com/user-attachments/assets/3023626e-ad48-43a5-bd8e-1b13920ad7e0
+<https://github.com/user-attachments/assets/3023626e-ad48-43a5-bd8e-1b13920ad7e0>
 
 An experimental starter that explores a new way to build applications on Reddit's developer platform.
 

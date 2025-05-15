@@ -1,16 +1,16 @@
 import express from 'express';
 import { createServer } from 'http';
 
-import { devvitMiddleware } from './middleware';
+import { GameOverResponse, LeaderboardResponse, PersistedGameState } from '../shared/types/game';
+import { type InitMessage } from '../shared/types/message';
 import {
   leaderboardForPostForUserGet,
   leaderboardForPostGet,
   leaderboardForPostUpsertIfHigherScore,
 } from './core/leaderboardForPost';
-import { setPlayingIfNotExists, userGetOrSet, noUser } from './core/user';
-import { GameOverResponse, LeaderboardResponse } from '../shared/types/game';
-import { type InitMessage } from '../shared/types/message';
 import { postConfigGet } from './core/post';
+import { noUser, setPlayingIfNotExists, userGetOrSet } from './core/user';
+import { devvitMiddleware } from './middleware';
 
 const app = express();
 
@@ -133,6 +133,11 @@ router.post<{ postId: string }, GameOverResponse, { score: number }>(
       leaderboard,
       userAllTimeStats,
     });
+
+    // Clear saved state
+    if (req.devvit.userId) {
+      await req.devvit.redis.del(`game_state:${req.devvit.postId}:${req.devvit.userId}`);
+    }
   }
 );
 
@@ -160,6 +165,39 @@ router.get<{ postId: string }, LeaderboardResponse>(
     });
   }
 );
+
+// Save game state
+router.post<{ postId: string }, { status: string; message?: string }, PersistedGameState>(
+  '/api/post/save-state',
+  async (req, res): Promise<void> => {
+    const { postId } = req.devvit;
+    const { userId } = req.body;
+    if (!postId || !userId) {
+      res.status(400).json({ status: 'error', message: 'postId and userId required' });
+      return;
+    }
+    await req.devvit.redis.set(`game_state:${postId}:${userId}`, JSON.stringify(req.body));
+    res.json({ status: 'success' });
+  }
+);
+
+// Load game state
+router.get<
+  { postId: string; userId: string },
+  PersistedGameState | { status: string; message?: string }
+>('/api/post/load-state', async (req, res): Promise<void> => {
+  const { postId, userId } = req.query;
+  if (!postId || !userId) {
+    res.status(400).json({ status: 'error', message: 'postId and userId required' });
+    return;
+  }
+  const state = await req.devvit.redis.get(`game_state:${postId}:${userId}`);
+  if (!state) {
+    res.status(404).json({ status: 'error', message: 'No saved state' });
+    return;
+  }
+  res.json(JSON.parse(state));
+});
 
 // Use router middleware
 app.use(router);

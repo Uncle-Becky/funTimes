@@ -11,33 +11,6 @@ export type RGB = {
 };
 
 /**
- * Block configuration =====================================================================
- */
-export type BlockBaseConfig = {
-  /** Hex‑style color string, e.g. "0x333344" */
-  color: string;
-  scale: Vector3;
-};
-
-export type BlockColorsConfig = {
-  /** Base color (RGB channel values 0‑255) */
-  base: RGB;
-  /** Random range added to base (RGB channel values 0‑255) */
-  range: RGB;
-  /** Per‑channel intensity multiplier (0‑1 floats)
-   *  NOTE: The key is spelt ‘intensity’ in the source JSON and is preserved here.
-   */
-  intensity: RGB;
-};
-
-export type BlockConfig = {
-  /** Uniform block dimensions & color */
-  base: BlockBaseConfig;
-  /** Per‑instance color variation */
-  colors: BlockColorsConfig;
-};
-
-/**
  * Gameplay configuration =================================================================
  */
 export type SpeedConfig = {
@@ -102,7 +75,6 @@ export type LightConfig = {
  * Root config object =======================================================================
  */
 export type PostConfig = {
-  block: BlockConfig;
   gameplay: GameplayConfig;
   instructions: InstructionsConfig;
   camera: CameraConfig;

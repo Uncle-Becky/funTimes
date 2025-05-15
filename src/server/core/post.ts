@@ -1,37 +1,10 @@
 import { Context } from '@devvit/public-api';
-import { PostConfig } from '../../shared/types/postConfig';
 import { RequestContext } from '@devvit/server';
+import { PostConfig } from '../../shared/types/postConfig';
 
 const getPostConfigKey = (postId: string) => `post_config:${postId}` as const;
 
 const defaultPostConfig: PostConfig = {
-  'block': {
-    'base': {
-      'color': '0x333344',
-      'scale': {
-        'x': 10,
-        'y': 2,
-        'z': 10,
-      },
-    },
-    'colors': {
-      'base': {
-        'r': 200,
-        'g': 200,
-        'b': 200,
-      },
-      'range': {
-        'r': 55,
-        'g': 55,
-        'b': 55,
-      },
-      'intensity': {
-        'r': 0.3,
-        'g': 0.34,
-        'b': 0.38,
-      },
-    },
-  },
   'gameplay': {
     'distance': 12,
     'speed': {

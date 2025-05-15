@@ -1,4 +1,6 @@
 import { Easing, Tween, update as tweenjsUpdate } from '@tweenjs/tween.js';
+// @ts-expect-error No types
+import anime from 'animejs';
 import {
   BoxGeometry,
   BufferGeometry,
@@ -8,7 +10,6 @@ import {
   MeshToonMaterial,
   OrthographicCamera,
   Raycaster,
-  SphereGeometry,
   Vector3,
 } from 'three';
 import Stats from 'three/examples/jsm/libs/stats.module';
@@ -16,7 +17,11 @@ import type {
   Enemy,
   EnemyType,
   MapGrid,
+  ObstacleType,
+  Path,
+  PersistedGameState,
   PlayerState,
+  TerrainType,
   Tile,
   Troop,
   TroopType,
@@ -24,12 +29,13 @@ import type {
 import { InitMessage } from '../shared/types/message';
 import type { PostConfig } from '../shared/types/postConfig';
 import { User } from '../shared/types/user';
-import { Block } from './block';
 import { Devvit } from './devvit';
 import { Stage } from './stage';
 import { Ticker } from './ticker';
+import { EnemyController } from './utils/enemyController';
 import { getEnv } from './utils/env';
-import { Pool } from './utils/pool';
+import { TroopController } from './utils/troopController';
+import { WaveManager } from './utils/waveManager';
 
 type GameState = 'loading' | 'ready' | 'playing' | 'ended' | 'resetting';
 
@@ -57,20 +63,14 @@ export class Game {
   private devvit!: Devvit;
   private mainContainer!: HTMLElement;
   private scoreContainer!: HTMLElement;
-  private instructions!: HTMLElement;
   private leaderboardList!: HTMLElement;
   private gameOverText!: HTMLElement;
   private ticker!: Ticker;
 
   private state: GameState = 'loading';
   private stage!: Stage;
-  private blocks: Block[] = [];
-
-  private pool!: Pool<Block>;
 
   private stats!: Stats;
-
-  private colorOffset!: number;
 
   private userAllTimeStats: {
     score: number;
@@ -101,11 +101,21 @@ export class Game {
   private enemyMeshes: Map<string, Mesh> = new Map(); // Enemy ID -> Mesh
   private waveInProgress: boolean = false;
   private waveTimer: number = 0; // For spawning next enemy in wave
-  private currentWaveConfig: { type: EnemyType; count: number; spawned: number }[] | null = null;
+  private currentWaveConfig:
+    | { type: EnemyType; count: number; spawned: number; pathId?: string | undefined }[]
+    | null = null;
 
   private troopAttackTimers: Map<string, number> = new Map(); // Troop ID -> time until next attack
   private attackVisuals: Map<string, Line> = new Map(); // Troop ID -> Line mesh for attack
   private activeTargetLines: Set<string> = new Set(); // Troop IDs currently showing an attack line
+
+  private troopController!: TroopController;
+  private enemyController!: EnemyController;
+
+  private waveManager!: WaveManager;
+
+  private postId: string | null = null;
+  private userId: string | null = null;
 
   public async prepare(width: number, height: number, devicePixelRatio: number): Promise<void> {
     // Fetch init data directly from the API endpoint
@@ -146,7 +156,6 @@ export class Game {
 
     this.mainContainer = document.getElementById('container') as HTMLElement;
     this.scoreContainer = document.getElementById('score') as HTMLElement;
-    this.instructions = document.getElementById('instructions') as HTMLElement;
     this.leaderboardList = document.getElementById('leaderboard-list') as HTMLElement;
     this.gameOverText = document.getElementById('game-over-text') as HTMLElement;
     this.troopAccordionMenu = document.getElementById('troop-accordion-menu') as HTMLElement;
@@ -157,11 +166,6 @@ export class Game {
 
     this.stage = new Stage(this.config, devicePixelRatio);
     this.stage.resize(width, height);
-
-    this.blocks = [];
-    this.addBaseBlock();
-
-    this.pool = new Pool(() => new Block());
 
     if (getEnv().MODE === 'development') {
       this.stats = Stats();
@@ -177,25 +181,52 @@ export class Game {
       this.stats?.update();
     });
 
-    // Initialize a simple grid map (10x6 for now)
+    // Initialize a modular grid map (10x6 for now) with terrain and obstacles
     const gridWidth = 10;
     const gridHeight = 6;
     const tiles: Tile[][] = [];
     for (let y = 0; y < gridHeight; y++) {
       const row: Tile[] = [];
       for (let x = 0; x < gridWidth; x++) {
-        row.push({ x, y, occupied: false, highlight: 'none' });
+        // Example: alternate terrain and random obstacles
+        let terrainType: TerrainType = 'grass';
+        if (y === 0 || y === gridHeight - 1) terrainType = 'mountain';
+        else if (x === 0 || x === gridWidth - 1) terrainType = 'water';
+        else if ((x + y) % 5 === 0) terrainType = 'dirt';
+        let obstacle: ObstacleType = 'none';
+        if ((x === 3 && y === 2) || (x === 6 && y === 4)) obstacle = 'rock';
+        row.push({ x, y, occupied: false, highlight: 'none', terrainType, obstacle });
       }
       tiles.push(row);
     }
-    // Simple straight path for now
-    const path = Array.from({ length: gridWidth }, (_, i) => ({
-      x: i,
-      y: Math.floor(gridHeight / 2),
-    }));
-    this.mapGrid = { width: gridWidth, height: gridHeight, tiles, path };
+    // Multiple paths: one ground, one air (stub for future flying units)
+    const groundPath: Path = {
+      id: 'main',
+      waypoints: Array.from({ length: gridWidth }, (_, i) => ({
+        x: i,
+        y: Math.floor(gridHeight / 2),
+      })),
+      type: 'ground',
+    };
+    const airPath: Path = {
+      id: 'fly',
+      waypoints: [
+        { x: 0, y: 1 },
+        { x: 3, y: 0 },
+        { x: 6, y: 5 },
+        { x: 9, y: 4 },
+      ],
+      type: 'air',
+      splinePoints: [
+        { x: 0, y: 1, z: 3 },
+        { x: 3, y: 0, z: 6 },
+        { x: 6, y: 5, z: 2 },
+        { x: 9, y: 4, z: 4 },
+      ],
+    };
+    this.mapGrid = { width: gridWidth, height: gridHeight, tiles, paths: [groundPath, airPath] };
 
-    // Render the grid in three.js
+    // Render the grid in three.js (now supports terrain, obstacles, and multiple paths)
     this.renderGrid();
 
     // Initialize PlayerState (example values)
@@ -220,6 +251,28 @@ export class Game {
     this.playerMoneyDisplay = document.getElementById('player-money') as HTMLElement;
     this.playerLivesDisplay = document.getElementById('player-lives') as HTMLElement;
     this.currentWaveDisplay = document.getElementById('current-wave') as HTMLElement;
+
+    this.troopController = new TroopController();
+    this.enemyController = new EnemyController(
+      (mesh) => this.stage.add(mesh),
+      (mesh) => this.stage.remove(mesh)
+    );
+
+    this.waveManager = new WaveManager();
+
+    this.postId = initData.postId;
+    this.userId = initData.user.id;
+    // Try to load saved state
+    if (this.postId && this.userId) {
+      const saved = await this.devvit.loadState(this.postId, this.userId);
+      if (saved) {
+        this.restoreState(saved);
+        this.updateHUD();
+        this.renderGrid();
+        this.updateState('ready');
+        return;
+      }
+    }
 
     this.updateState('ready');
   }
@@ -258,7 +311,6 @@ export class Game {
         await this.startGame();
         break;
       case 'playing':
-        await this.placeBlock();
         break;
       case 'ended':
         await this.restartGame();
@@ -268,7 +320,6 @@ export class Game {
 
   private async startGame(): Promise<void> {
     if (this.state === 'playing') return;
-    this.colorOffset = Math.round(Math.random() * 100);
     this.scoreContainer.innerHTML = '0';
     this.updateState('playing');
     this.startNextWave();
@@ -277,25 +328,19 @@ export class Game {
   private async restartGame(): Promise<void> {
     this.updateState('resetting');
 
-    const length = this.blocks.length;
+    const length = this.enemies.length;
     const duration = 200;
     const delay = 20;
 
     for (let i = length - 1; i > 0; i--) {
-      new Tween(this.blocks[i]!.scale)
+      new Tween(this.enemies[i]!.position)
         .to({ x: 0, y: 0, z: 0 }, duration)
         .delay((length - i - 1) * delay)
         .easing(Easing.Cubic.In)
         .onComplete(() => {
-          this.stage.remove(this.blocks[i]!.getMesh());
-          this.pool.release(this.blocks[i]!);
+          this.stage.remove(this.enemyMeshes.get(this.enemies[i]!.id)!);
+          this.enemyMeshes.delete(this.enemies[i]!.id);
         })
-        .start();
-
-      new Tween(this.blocks[i]!.rotation)
-        .to({ y: 0.5 }, duration)
-        .delay((length - i - 1) * delay)
-        .easing(Easing.Cubic.In)
         .start();
     }
 
@@ -311,7 +356,7 @@ export class Game {
       .start();
 
     setTimeout(async () => {
-      this.blocks = this.blocks.slice(0, 1);
+      this.enemies = this.enemies.slice(0, 1);
       await this.startGame();
     }, cameraMoveSpeed);
   }
@@ -332,106 +377,6 @@ export class Game {
     this.userAllTimeStats = data.userAllTimeStats;
     this.updateLeaderboard(data.leaderboard);
     // No automatic restart logic here, player clicks to restart via action()
-  }
-
-  private async placeBlock(): Promise<void> {
-    const length = this.blocks.length;
-    const targetBlock = this.blocks[length - 2];
-    const currentBlock = this.blocks[length - 1];
-
-    const result = currentBlock!.cut(targetBlock!, this.config.gameplay.accuracy);
-
-    if (result.state === 'missed') {
-      this.stage.remove(currentBlock!.getMesh());
-      await this.endGame(false);
-      return;
-    }
-
-    this.scoreContainer.innerHTML = String(length - 1);
-    this.addBlock(currentBlock!);
-
-    if (result.state === 'chopped') {
-      this.addChoppedBlock(result.position!, result.scale!, currentBlock!);
-    }
-  }
-
-  private addBaseBlock(): void {
-    const { scale, color } = this.config.block.base;
-    const block = new Block(new Vector3(scale.x, scale.y, scale.z));
-    this.stage.add(block.getMesh());
-    this.blocks.push(block);
-    block.color = parseInt(color, 16);
-  }
-
-  private addBlock(targetBlock: Block): void {
-    const block = this.pool.get();
-
-    block.rotation.set(0, 0, 0);
-    block.scale.set(targetBlock.scale.x, targetBlock.scale.y, targetBlock.scale.z);
-    block.position.set(targetBlock.x, targetBlock.y + targetBlock.height, targetBlock.z);
-    block.direction.set(0, 0, 0);
-    block.color = this.getNextBlockColor();
-
-    this.stage.add(block.getMesh());
-    this.blocks.push(block);
-
-    const length = this.blocks.length;
-    if (length % 2 === 0) {
-      block.direction.x = Math.random() > 0.5 ? 1 : -1;
-    } else {
-      block.direction.z = Math.random() > 0.5 ? 1 : -1;
-    }
-
-    block.moveScalar(this.config.gameplay.distance);
-    this.stage.setCamera(block.y);
-
-    this.scoreContainer.innerHTML = String(length - 1);
-    if (length >= this.config.instructions.height) {
-      this.instructions.classList.add('hide');
-    }
-  }
-
-  private addChoppedBlock(position: Vector3, scale: Vector3, sourceBlock: Block): void {
-    const block = this.pool.get();
-
-    block.rotation.set(0, 0, 0);
-    block.scale.set(scale.x, scale.y, scale.z);
-    block.position.copy(position);
-    block.color = sourceBlock.color;
-
-    this.stage.add(block.getMesh());
-
-    const dirX = Math.sign(block.x - sourceBlock.x);
-    const dirZ = Math.sign(block.z - sourceBlock.z);
-    new Tween(block.position)
-      .to(
-        {
-          x: block.x + dirX * 10,
-          y: block.y - 30,
-          z: block.z + dirZ * 10,
-        },
-        1000
-      )
-      .easing(Easing.Quadratic.In)
-      .onComplete(() => {
-        this.stage.remove(block.getMesh());
-        this.pool.release(block);
-      })
-      .start();
-
-    new Tween(block.rotation)
-      .to({ x: dirZ * 5, z: dirX * -5 }, 900)
-      .delay(50)
-      .start();
-  }
-
-  private getNextBlockColor(): number {
-    const { base, range, intensity } = this.config.block.colors;
-    const offset = this.blocks.length + this.colorOffset;
-    const r = base.r + range.r * Math.sin(intensity.r * offset);
-    const g = base.g + range.g * Math.sin(intensity.g * offset);
-    const b = base.b + range.b * Math.sin(intensity.b * offset);
-    return (r << 16) + (g << 8) + b;
   }
 
   private updateLeaderboard(
@@ -464,25 +409,37 @@ export class Game {
     this.gridMeshes = [];
     const tileSize = 5;
 
-    // Create a set of path coordinates for quick lookup
-    const pathCoords = new Set(this.mapGrid.path.map((p) => `${p.x},${p.y}`));
+    // Create a set of path coordinates for quick lookup (all paths)
+    const pathCoords = new Set<string>();
+    for (const path of this.mapGrid.paths) {
+      for (const p of path.waypoints) {
+        pathCoords.add(`${p.x},${p.y}`);
+      }
+    }
 
     for (let y = 0; y < this.mapGrid.height; y++) {
       for (let x = 0; x < this.mapGrid.width; x++) {
         const tile = this.mapGrid.tiles[y]?.[x];
         let tileColor = 0xcccccc; // Default tile color
-
-        if (tile) {
-          if (pathCoords.has(`${x},${y}`)) {
-            tileColor = 0x99cc99; // Path color (e.g., light green)
-          }
-          if (tile.highlight === 'valid') {
-            tileColor = 0x66ff66; // Valid placement highlight (bright green)
-          } else if (tile.highlight === 'invalid') {
-            tileColor = 0xff6666; // Invalid placement highlight (bright red)
-          }
+        // Terrain coloring
+        if (tile?.terrainType === 'grass') tileColor = 0x99cc66;
+        else if (tile?.terrainType === 'dirt') tileColor = 0xcc9966;
+        else if (tile?.terrainType === 'water') tileColor = 0x3399ff;
+        else if (tile?.terrainType === 'mountain') tileColor = 0x888888;
+        else if (tile?.terrainType === 'road') tileColor = 0xddddbb;
+        // Path highlight
+        if (pathCoords.has(`${x},${y}`)) {
+          tileColor = 0x99cc99; // Path color (e.g., light green)
         }
-
+        // Obstacle coloring
+        if (tile?.obstacle && tile.obstacle !== 'none') {
+          tileColor = 0x444444; // Obstacle color (dark gray)
+        }
+        if (tile?.highlight === 'valid') {
+          tileColor = 0x66ff66; // Valid placement highlight (bright green)
+        } else if (tile?.highlight === 'invalid') {
+          tileColor = 0xff6666; // Invalid placement highlight (bright red)
+        }
         const geometry = new BoxGeometry(tileSize, 0.2, tileSize);
         const material = new MeshToonMaterial({ color: tileColor });
         const mesh = new Mesh(geometry, material);
@@ -490,6 +447,7 @@ export class Game {
         mesh.userData = { x, y }; // Store tile coordinates in mesh for raycasting
         this.stage.add(mesh);
         this.gridMeshes.push(mesh);
+        // TODO: Add stub for Anime.js path highlight (future)
       }
     }
   }
@@ -559,20 +517,16 @@ export class Game {
       console.warn('Attempted to place troop with null type.');
       return;
     }
-
     const tile = this.mapGrid.tiles[y]?.[x];
     const troopConfig = TROOP_CONFIG[type];
-
     if (!tile || tile.occupied) {
       console.warn(`Cannot place troop at (${x},${y}). Tile occupied or invalid.`);
       return;
     }
-
     if (!troopConfig) {
       console.warn(`Unknown troop type: ${type}`);
       return;
     }
-
     if (this.playerState.money < troopConfig.cost) {
       console.warn(
         `Not enough money to place ${type}. Need ${troopConfig.cost}, have ${this.playerState.money}`
@@ -580,13 +534,11 @@ export class Game {
       // TODO: Show this message in the UI
       return;
     }
-
     this.playerState.money -= troopConfig.cost;
     this.updateHUD();
-
     tile.occupied = true;
     const troop: Troop = {
-      id: `${type}-${Date.now()}-${x}-${y}`, // More unique ID
+      id: `${type}-${Date.now()}-${x}-${y}`,
       type,
       position: { x, y },
       level: 1,
@@ -595,18 +547,18 @@ export class Game {
       fireRate: troopConfig.fireRate,
       cost: troopConfig.cost,
     };
+    this.troopController.addTroop(troop);
     this.troops.push(troop);
-    this.playerState.troops.push(troop); // Keep playerState.troops in sync
-
+    this.playerState.troops.push(troop);
     // Render the troop (simple colored box for now)
-    const geometry = new BoxGeometry(3, 2, 3); // Use troop-specific geometry/material later
-    const material = new MeshToonMaterial({ color: 0x3366cc }); // Use troop-specific color later
+    const geometry = new BoxGeometry(3, 2, 3);
+    const material = new MeshToonMaterial({ color: 0x3366cc });
     const mesh = new Mesh(geometry, material);
-    // Adjust position based on tile size and troop visual height
-    const tileSize = 5; // Assuming this is consistent with renderGrid
+    const tileSize = 5;
     mesh.position.set(x * tileSize, 1.1, y * tileSize);
     this.stage.add(mesh);
     console.log(`Placed ${type} at (${x},${y}). Money left: ${this.playerState.money}`);
+    void this.saveState();
   }
 
   private initAccordion(): void {
@@ -725,73 +677,68 @@ export class Game {
 
   private updateHUD(): void {
     if (this.playerMoneyDisplay) {
+      if (this.playerMoneyDisplay.textContent !== `Money: ${this.playerState.money}`) {
+        anime.remove(this.playerMoneyDisplay);
+        anime({
+          targets: this.playerMoneyDisplay,
+          scale: [1, 1.25, 1],
+          color: ['#333344', this.playerState.money > 0 ? '#44bb44' : '#bb4444', '#333344'],
+          duration: 400,
+          easing: 'easeOutElastic(1, .5)',
+        });
+      }
       this.playerMoneyDisplay.textContent = `Money: ${this.playerState.money}`;
     }
     if (this.playerLivesDisplay) {
+      if (this.playerLivesDisplay.textContent !== `Lives: ${this.playerState.lives}`) {
+        anime.remove(this.playerLivesDisplay);
+        anime({
+          targets: this.playerLivesDisplay,
+          scale: [1, 1.25, 1],
+          color: ['#333344', this.playerState.lives > 0 ? '#44bb44' : '#bb4444', '#333344'],
+          duration: 400,
+          easing: 'easeOutElastic(1, .5)',
+        });
+      }
       this.playerLivesDisplay.textContent = `Lives: ${this.playerState.lives}`;
     }
     if (this.currentWaveDisplay) {
-      // Assuming max waves are e.g. 10 for now
-      this.currentWaveDisplay.textContent = `Wave: ${this.playerState.currentWave}/10`;
+      const totalWaves = 9; // 8 normal + 1 boss (sync with WaveManager)
+      this.currentWaveDisplay.textContent = `Wave: ${this.playerState.currentWave}/${totalWaves}`;
     }
   }
 
   private startNextWave(): void {
-    this.playerState.currentWave++;
+    const wave = this.waveManager.getNextWave();
+    if (!wave) {
+      void this.endGame(true);
+      return;
+    }
+    this.playerState.currentWave = this.waveManager.getCurrentWaveNumber();
     this.updateHUD();
     this.waveInProgress = true;
-    // Example wave configuration (can be loaded from a wave data structure)
-    // For now, just one type of enemy per wave, increasing count
-    this.currentWaveConfig = [
-      { type: 'goblin', count: 5 + this.playerState.currentWave * 2, spawned: 0 },
-      // { type: 'orc', count: this.playerState.currentWave, spawned: 0 } // Add more types later
-    ];
-    this.waveTimer = 0; // Reset spawn timer
+    if (wave.announcement) {
+      this.waveManager.animateWaveAnnouncement(wave.announcement);
+    }
+    this.currentWaveConfig = wave.enemies.map((e) => ({
+      type: e.type,
+      count: e.count,
+      spawned: 0,
+      pathId: e.pathId,
+    }));
+    this.waveTimer = 0;
     console.log(`Starting wave ${this.playerState.currentWave}`);
+    void this.saveState();
   }
 
-  private spawnEnemy(type: EnemyType): void {
-    const config = ENEMY_CONFIG[type];
-    if (!config || this.mapGrid.path.length === 0) {
-      console.warn('Cannot spawn enemy: No config or path is empty');
+  private spawnEnemy(type: EnemyType, pathId?: string): void {
+    const path = this.mapGrid.paths.find((p) => p.id === (pathId || 'main'));
+    if (!path || !path.waypoints.length) {
+      console.warn('Cannot spawn enemy: No path is available');
       return;
     }
-
-    const startTile = this.mapGrid.path[0];
-    if (!startTile) {
-      // Explicit check for startTile
-      console.warn('Cannot spawn enemy: Start tile is undefined.');
-      return;
-    }
-
-    const enemy: Enemy = {
-      id: `${type}-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`, // More unique ID
-      type,
-      health: config.health,
-      speed: config.speed,
-      position: { x: startTile.x, y: startTile.y },
-      pathIndex: 0,
-    };
-    this.enemies.push(enemy);
-
-    // Create and store mesh for this enemy
-    const tileSize = 5;
-    const geometry = new SphereGeometry(tileSize / 3, 8, 8); // Adjusted size slightly
-    let color = 0xff0000;
-    if (enemy.type === 'orc') color = 0x00cc00; // Darker green
-    if (enemy.type === 'ogre') color = 0x3333ff; // Darker blue
-    const material = new MeshToonMaterial({ color });
-    const mesh = new Mesh(geometry, material);
-    // mesh.userData.type = 'enemy'; // Still useful for general queries if needed
-    mesh.userData.id = enemy.id; // Store enemy ID on mesh for direct lookup
-    mesh.position.set(
-      enemy.position.x * tileSize + tileSize / 2,
-      tileSize / 3,
-      enemy.position.y * tileSize + tileSize / 2
-    ); // Centered on tile, slightly above ground
-    this.stage.add(mesh);
-    this.enemyMeshes.set(enemy.id, mesh);
-    console.log('Spawned enemy:', enemy.id, 'at mesh pos', mesh.position);
+    const enemy = this.enemyController.spawnEnemy(type, path);
+    console.log('Spawned enemy:', enemy.id);
   }
 
   private updateEnemies(deltaTime: number): void {
@@ -801,59 +748,64 @@ export class Game {
         let spawnedThisFrame = false;
         for (const waveEnemy of this.currentWaveConfig) {
           if (waveEnemy.spawned < waveEnemy.count) {
-            this.spawnEnemy(waveEnemy.type);
+            this.spawnEnemy(waveEnemy.type, waveEnemy.pathId);
             waveEnemy.spawned++;
             spawnedThisFrame = true;
-            break; // Spawn one enemy type per interval tick for now
+            break;
           }
         }
         if (spawnedThisFrame) {
-          this.waveTimer = 1000; // Interval between spawns (1 second)
+          this.waveTimer = 1000;
         }
       }
     }
-
-    const tileSize = 5; // Must match renderGrid
-    for (let i = this.enemies.length - 1; i >= 0; i--) {
-      const enemy = this.enemies[i]!;
-      if (enemy.pathIndex >= this.mapGrid.path.length - 1) {
-        // Reached end of path
+    const tileSize = 5;
+    const enemies = this.enemyController.getAll();
+    for (let i = enemies.length - 1; i >= 0; i--) {
+      const enemy = enemies[i]!;
+      const path = this.mapGrid.paths.find((p) => p.id === 'main');
+      if (!path || !Array.isArray(path.waypoints) || !path.waypoints.length) continue;
+      if (typeof enemy.pathIndex !== 'number' || enemy.pathIndex >= path.waypoints.length - 1) {
         this.playerState.lives--;
         this.updateHUD();
         const enemyIdToRemove = enemy.id;
-        this.removeEnemy(enemyIdToRemove, i); // Expect removeEnemy to exist
+        this.enemyController.removeEnemy(enemyIdToRemove);
         console.log(`Enemy ${enemyIdToRemove} reached end. Lives: ${this.playerState.lives}`);
         if (this.playerState.lives <= 0) {
-          void this.endGame(false); // Player lost - ADDED VOID HERE
+          void this.endGame(false);
         }
         continue;
       }
-
-      const targetWaypoint = this.mapGrid.path[enemy.pathIndex + 1]!;
-      const targetPosition = { x: targetWaypoint.x * tileSize, y: targetWaypoint.y * tileSize }; // Convert tile to world
-      const enemyWorldPos = { x: enemy.position.x * tileSize, y: enemy.position.y * tileSize }; // Current world pos
-
-      // Simplified movement towards target waypoint
-      // More robust movement would involve vector math and normalization
+      if (!Array.isArray(path.waypoints) || !path.waypoints[enemy.pathIndex + 1]) continue;
+      const targetWaypoint = path.waypoints[enemy.pathIndex + 1];
+      if (
+        !targetWaypoint ||
+        typeof targetWaypoint.x !== 'number' ||
+        typeof targetWaypoint.y !== 'number'
+      )
+        continue;
+      const targetPosition = { x: targetWaypoint.x * tileSize, y: targetWaypoint.y * tileSize };
+      const enemyWorldPos = { x: enemy.position.x * tileSize, y: enemy.position.y * tileSize };
       const dx = targetPosition.x - enemyWorldPos.x;
-      const dy = targetPosition.y - enemyWorldPos.y; // Assuming 2D path movement on XZ plane for now
+      const dy = targetPosition.y - enemyWorldPos.y;
       const distance = Math.sqrt(dx * dx + dy * dy);
-      const moveSpeed = (enemy.speed * tileSize * deltaTime) / 1000; // speed in units/sec
-
+      const moveSpeed = (enemy.speed * tileSize * deltaTime) / 1000;
       if (distance < moveSpeed) {
-        enemy.position.x = targetWaypoint.x; // Snap to waypoint tile index
+        enemy.position.x = targetWaypoint.x;
         enemy.position.y = targetWaypoint.y;
         enemy.pathIndex++;
       } else {
-        enemy.position.x += (dx / distance) * (moveSpeed / tileSize); // Move by tile fraction
+        enemy.position.x += (dx / distance) * (moveSpeed / tileSize);
         enemy.position.y += (dy / distance) * (moveSpeed / tileSize);
       }
-
-      // TODO: Check for enemy death (health <= 0) - to be handled by troop attacks
+      // TODO: Use enemyController.moveEnemy for extensibility
     }
-
     // Check if wave is complete
-    if (this.waveInProgress && this.currentWaveConfig && this.enemies.length === 0) {
+    if (
+      this.waveInProgress &&
+      this.currentWaveConfig &&
+      this.enemyController.getAll().length === 0
+    ) {
       let allSpawned = true;
       for (const waveEnemy of this.currentWaveConfig) {
         if (waveEnemy.spawned < waveEnemy.count) {
@@ -865,9 +817,9 @@ export class Game {
         this.waveInProgress = false;
         console.log(`Wave ${this.playerState.currentWave} complete.`);
         if (this.playerState.currentWave < 10) {
-          void setTimeout(() => this.startNextWave(), 3000); // Added void
+          void setTimeout(() => this.startNextWave(), 3000);
         } else {
-          void this.endGame(true); // Added void
+          void this.endGame(true);
         }
       }
     }
@@ -949,71 +901,83 @@ export class Game {
     this.activeTargetLines.delete(troopId); // Ensure it's also removed from active set
   }
 
-  private removeEnemy(enemyId: string, enemyArrayIndex: number): void {
-    // Logic for removing enemy data and mesh will be added here step-by-step.
-    console.log(`Placeholder: Attempting to remove enemy ${enemyId} at index ${enemyArrayIndex}`);
+  private removeEnemy(enemyId: string, _enemyArrayIndex: number): void {
+    this.enemyController.removeEnemy(enemyId);
   }
 
   private updateTroops(deltaTime: number): void {
-    const tileSize = 5; // Assuming this is consistent for position calculations
-    this.activeTargetLines.clear(); // Clear at the start of each update
-
-    for (const troop of this.playerState.troops) {
+    const tileSize = 5;
+    this.activeTargetLines.clear();
+    for (const troop of this.troopController.getAll()) {
       // Manage attack cooldown
       let timeUntilAttack = this.troopAttackTimers.get(troop.id) || 0;
       timeUntilAttack -= deltaTime;
       this.troopAttackTimers.set(troop.id, timeUntilAttack);
-
       if (timeUntilAttack > 0) {
-        continue; // Troop is on cooldown
+        continue;
       }
-
-      // Find a target
-      let targetEnemy: Enemy | null = null;
-      let closestDistanceSq = Infinity;
-
-      const troopWorldX = troop.position.x * tileSize + tileSize / 2; // Center of the troop's tile
-      const troopWorldY = troop.position.y * tileSize + tileSize / 2; // Using Y for Z in 3D typically
-
-      for (const enemy of this.enemies) {
-        const enemyWorldX = enemy.position.x * tileSize + tileSize / 2;
-        const enemyWorldY = enemy.position.y * tileSize + tileSize / 2;
-
-        const dx = troopWorldX - enemyWorldX;
-        const dy = troopWorldY - enemyWorldY; // Assuming path/grid is on XZ plane
-        const distanceSq = dx * dx + dy * dy;
-        const troopRangeWorld = troop.range * tileSize; // Convert troop range (in tiles) to world units
-
-        if (distanceSq < troopRangeWorld * troopRangeWorld && distanceSq < closestDistanceSq) {
-          targetEnemy = enemy;
-          closestDistanceSq = distanceSq;
+      // Find a target (use TroopController.attack for extensibility)
+      let targetEnemy: Enemy | null = this.troopController.attack(troop, this.enemies);
+      if (!targetEnemy) {
+        // Fallback: find closest enemy in range (legacy logic)
+        let closestDistanceSq = Infinity;
+        const troopWorldX = troop.position.x * tileSize + tileSize / 2;
+        const troopWorldY = troop.position.y * tileSize + tileSize / 2;
+        for (const enemy of this.enemies) {
+          const enemyWorldX = enemy.position.x * tileSize + tileSize / 2;
+          const enemyWorldY = enemy.position.y * tileSize + tileSize / 2;
+          const dx = troopWorldX - enemyWorldX;
+          const dy = troopWorldY - enemyWorldY;
+          const distanceSq = dx * dx + dy * dy;
+          const troopRangeWorld = troop.range * tileSize;
+          if (distanceSq < troopRangeWorld * troopRangeWorld && distanceSq < closestDistanceSq) {
+            targetEnemy = enemy;
+            closestDistanceSq = distanceSq;
+          }
         }
       }
-
       if (targetEnemy) {
         // Attack the target enemy
-        console.log(`Troop ${troop.id} (${troop.type}) attacking enemy ${targetEnemy.id}`);
+        // Use TroopController.fireProjectile for Anime.js-powered animation (stub)
+        this.troopController.fireProjectile(troop, targetEnemy);
         targetEnemy.health -= troop.damage;
-        // TODO: Add visual for attack (e.g., line, particle)
-        this.activeTargetLines.add(troop.id); // Mark troop as actively attacking for rendering
+        this.activeTargetLines.add(troop.id);
         this.troopAttackTimers.set(troop.id, 1000 / troop.fireRate);
-
         if (targetEnemy.health <= 0) {
-          console.log(`Enemy ${targetEnemy.id} defeated by troop ${troop.id}`);
           this.playerState.money += ENEMY_CONFIG[targetEnemy.type as EnemyType]?.reward || 0;
           this.updateHUD();
-          // Remove enemy from the game
           const enemyIdToRemove = targetEnemy.id;
           const enemyIndexToRemove = this.enemies.findIndex((e) => e.id === enemyIdToRemove);
           if (enemyIndexToRemove > -1) {
-            // Ensure index is valid before calling
-            this.removeEnemy(enemyIdToRemove, enemyIndexToRemove); // Expect removeEnemy to exist
+            this.removeEnemy(enemyIdToRemove, enemyIndexToRemove);
           }
-          this.removeAttackVisual(troop.id); // Clean up visual if enemy dies
+          this.removeAttackVisual(troop.id);
         }
       } else {
-        this.removeAttackVisual(troop.id); // No target, remove visual
+        this.removeAttackVisual(troop.id);
       }
     }
+  }
+
+  private async saveState(): Promise<void> {
+    if (!this.postId || !this.userId) return;
+    const state: PersistedGameState = {
+      userId: this.userId,
+      postId: this.postId,
+      money: this.playerState.money,
+      lives: this.playerState.lives,
+      currentWave: this.playerState.currentWave,
+      troops: this.playerState.troops,
+      timestamp: Date.now(),
+    };
+    await this.devvit.saveState(state);
+  }
+
+  private restoreState(state: PersistedGameState): void {
+    this.playerState.money = state.money;
+    this.playerState.lives = state.lives;
+    this.playerState.currentWave = state.currentWave;
+    this.playerState.troops = state.troops;
+    // Optionally, restore more (e.g., upgrades, map, etc.)
   }
 }

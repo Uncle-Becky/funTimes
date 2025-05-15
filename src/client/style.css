@@ -350,3 +350,27 @@ body {
 #game-hud div {
   font-size: 16px;
 }
+
+#wave-announcement {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 3rem;
+  font-weight: bold;
+  color: #333344;
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 1em;
+  padding: 0.5em 2em;
+  z-index: 999;
+  pointer-events: none;
+  opacity: 0;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+  letter-spacing: 0.05em;
+  text-shadow:
+    0 2px 8px #fff,
+    0 1px 0 #aaa;
+  transition:
+    opacity 0.3s,
+    transform 0.3s;
+}

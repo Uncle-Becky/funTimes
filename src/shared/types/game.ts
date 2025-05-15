@@ -26,6 +26,9 @@ export type GameOverBody = {
 
 // --- Tower Defense Core Types ---
 
+export type TerrainType = 'grass' | 'dirt' | 'water' | 'road' | 'mountain';
+export type ObstacleType = 'rock' | 'tree' | 'wall' | 'none';
+
 export type TroopType = 'infantry' | 'archer' | 'mage' | 'cannon';
 
 export interface Troop {
@@ -37,6 +40,32 @@ export interface Troop {
   damage: number;
   fireRate: number;
   cost: number;
+  upgrades?: TroopUpgrade[];
+  abilities?: TroopAbility[];
+  statusEffects?: TroopStatusEffect[];
+}
+
+export interface TroopUpgrade {
+  level: number;
+  cost: number;
+  range?: number;
+  damage?: number;
+  fireRate?: number;
+  description?: string;
+}
+
+export interface TroopAbility {
+  name: string;
+  cooldown: number;
+  lastUsed?: number;
+  effect: string; // e.g., 'splash', 'freeze', 'pierce', etc.
+  // Future: parameters for effect
+}
+
+export interface TroopStatusEffect {
+  type: string; // e.g., 'buff', 'debuff', 'stun', etc.
+  duration: number;
+  value?: number;
 }
 
 export interface Enemy {
@@ -54,17 +83,27 @@ export interface Tile {
   occupied: boolean;
   troopId?: string;
   highlight?: 'none' | 'valid' | 'invalid';
+  terrainType?: TerrainType;
+  obstacle?: ObstacleType;
+}
+
+export interface Path {
+  id: string;
+  waypoints: { x: number; y: number }[];
+  type: 'ground' | 'air'; // For future flying units
+  // Optionally, a spline for air units
+  splinePoints?: { x: number; y: number; z: number }[];
 }
 
 export interface MapGrid {
   width: number;
   height: number;
   tiles: Tile[][];
-  path: { x: number; y: number }[]; // Enemy path waypoints
+  paths: Path[]; // Multiple paths supported
 }
 
 export interface Wave {
-  enemies: Array<{ type: string; count: number }>;
+  enemies: Array<{ type: string; count: number; pathId?: string }>;
 }
 
 export interface PlayerState {
@@ -75,3 +114,13 @@ export interface PlayerState {
 }
 
 export type EnemyType = 'goblin' | 'orc' | 'ogre';
+
+export interface PersistedGameState {
+  userId: string;
+  postId: string;
+  money: number;
+  lives: number;
+  currentWave: number;
+  troops: Troop[];
+  timestamp: number;
+}
