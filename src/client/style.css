@@ -17,13 +17,14 @@ body {
 
 #score {
   position: absolute;
-  top: 70px;
+  top: 10px;
   width: 100%;
   text-align: center;
-  font-size: 8vh;
+  font-size: 6vh;
   transition: transform 0.5s ease;
   color: #333344;
   transform: translatey(-200px) scale(1);
+  z-index: 90;
 }
 
 #version {
@@ -222,4 +223,130 @@ body {
   border-radius: 50%;
   object-fit: contain;
   overflow: hidden;
+}
+
+#troop-accordion-menu {
+  position: absolute;
+  left: 10px;
+  top: 70px; /* Below the leaderboard */
+  width: 200px;
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  z-index: 100;
+  font-family: 'Comfortaa', cursive;
+  max-height: calc(100vh - 100px); /* Adjust as needed */
+  overflow-y: auto;
+}
+
+.accordion-section .accordion-toggle {
+  width: 100%;
+  background-color: #e0e0e0;
+  border: none;
+  border-bottom: 1px solid #ccc;
+  padding: 10px;
+  text-align: left;
+  font-size: 16px;
+  font-family: 'Comfortaa', cursive;
+  cursor: pointer;
+  outline: none;
+}
+
+.accordion-section .accordion-toggle:hover {
+  background-color: #d0d0d0;
+}
+
+.accordion-section .accordion-content {
+  padding: 0px;
+  display: none; /* Hidden by default, JS will toggle */
+  background-color: #fafafa;
+}
+
+.accordion-section.open .accordion-content {
+  display: block;
+}
+
+.troop-item {
+  padding: 8px 10px;
+  border-bottom: 1px solid #eee;
+  cursor: grab;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.troop-item:last-child {
+  border-bottom: none;
+}
+
+.troop-item:hover {
+  background-color: #e8e8e8;
+}
+
+.troop-item img {
+  width: 32px; /* Adjust as needed */
+  height: 32px;
+  object-fit: contain;
+}
+
+.troop-item span {
+  font-size: 14px;
+}
+
+.troop-item span:last-child {
+  margin-left: auto; /* Pushes cost to the right */
+  font-weight: bold;
+  color: #333344;
+}
+
+/* Dragging styles (optional, can be enhanced later) */
+.troop-item.dragging {
+  opacity: 0.5;
+  background-color: #cceeff;
+}
+
+.troop-ghost {
+  position: absolute; /* Fixed position to follow mouse */
+  pointer-events: none; /* Ghost should not intercept mouse events */
+  z-index: 200; /* Above other UI but potentially below custom cursor */
+  opacity: 0.75;
+  /* Copy relevant styles from .troop-item if needed, or make it simpler */
+  padding: 8px 10px;
+  background-color: #d0e0f0; /* Slightly different background */
+  border: 1px dashed #3366cc;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.troop-ghost img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.troop-ghost span {
+  font-size: 14px;
+  font-family: 'Comfortaa', cursive;
+}
+
+#game-hud {
+  position: absolute;
+  top: 70px;
+  right: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 5px;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  padding: 10px;
+  border-radius: 5px;
+  z-index: 100;
+  font-family: 'Comfortaa', cursive;
+}
+
+#game-hud div {
+  font-size: 16px;
 }

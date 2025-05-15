@@ -1,13 +1,13 @@
 import { Devvit, Post } from '@devvit/public-api';
 
 // Side effect import to bundle the server. The /index is required for server splitting.
-import '../server/index';
 import { defineConfig } from '@devvit/server';
 import { postConfigNew } from '../server/core/post';
+import '../server/index';
 
 defineConfig({
-  name: 'TowerBlocks',
-  description: 'Can you build the tallest tower?',
+  name: 'SnooDefense',
+  description: 'Can you defend the tower?',
   entry: 'index.html',
   height: 'tall',
   inline: true,
@@ -44,7 +44,7 @@ export const Preview: Devvit.BlockComponent<{ text?: string }> = ({ text = 'Load
 // TODO: Remove this when defineConfig allows webhooks before post creation
 Devvit.addMenuItem({
   // Please update as you work on your idea!
-  label: 'TowerBlocks: New Post',
+  label: 'SnooDefense: New Post',
   location: 'subreddit',
   forUserType: 'moderator',
   onPress: async (_event, context) => {
@@ -55,7 +55,7 @@ Devvit.addMenuItem({
       const subreddit = await reddit.getCurrentSubreddit();
       post = await reddit.submitPost({
         // Title of the post. You'll want to update!
-        title: 'TowerBlocks',
+        title: 'SnooDefense',
         subredditName: subreddit.name,
         preview: <Preview />,
       });

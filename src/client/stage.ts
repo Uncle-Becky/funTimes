@@ -13,7 +13,7 @@ export class Stage {
   private container: HTMLElement;
   private scene: Scene;
   private renderer!: WebGLRenderer;
-  private camera!: OrthographicCamera;
+  public camera!: OrthographicCamera;
 
   private config: PostConfig;
 
@@ -49,6 +49,13 @@ export class Stage {
 
   public remove(object: Object3D): void {
     this.scene.remove(object);
+  }
+
+  public removeMeshesByType(type: string): void {
+    const meshesToRemove = this.scene.children.filter(
+      (child) => child.userData.type === type && child instanceof Object3D
+    );
+    meshesToRemove.forEach((mesh) => this.scene.remove(mesh));
   }
 
   private setupRenderer(devicePixelRatio: number): void {
@@ -98,5 +105,9 @@ export class Stage {
       .to({ y: position.y + offset }, duration)
       .easing(Easing.Cubic.Out)
       .start();
+  }
+
+  public getCamera(): OrthographicCamera {
+    return this.camera;
   }
 }
