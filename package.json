@@ -23,7 +23,7 @@
     "@devvit/public-api": "0.11.16-next-2025-05-12-ce8dc1307.0",
     "@devvit/server": "0.11.16-next-2025-05-12-ce8dc1307.0",
     "@tweenjs/tween.js": "18.6.4",
-    "devvit": "0.11.16-next-2025-05-12-ce8dc1307.0",
+    "devvit": "1.0.0",
     "express": "5.1.0",
     "three": "0.137.5"
   },
