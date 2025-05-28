@@ -40,6 +40,7 @@ export interface Troop {
   damage: number;
   fireRate: number;
   cost: number;
+  currentTargetId?: string | null; // Added for performance
   upgrades?: TroopUpgrade[];
   abilities?: TroopAbility[];
   statusEffects?: TroopStatusEffect[];

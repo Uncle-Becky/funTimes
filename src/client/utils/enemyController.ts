@@ -1,4 +1,3 @@
-import { Mesh, MeshToonMaterial, SphereGeometry } from 'three';
 import type { Enemy, EnemyType, Path } from '../../shared/types/game';
 
 /**
@@ -7,18 +6,22 @@ import type { Enemy, EnemyType, Path } from '../../shared/types/game';
  */
 export class EnemyController {
   private enemies: Enemy[] = [];
-  private enemyMeshes: Map<string, Mesh> = new Map();
+  private enemyMeshes: Map<string, any> = new Map(); // THREE.Mesh
+  private THREE: any;
 
   constructor(
-    private sceneAdd: (mesh: Mesh) => void,
-    private sceneRemove: (mesh: Mesh) => void
-  ) {}
+    THREE: any,
+    private sceneAdd: (mesh: any /* THREE.Mesh */) => void,
+    private sceneRemove: (mesh: any /* THREE.Mesh */) => void
+  ) {
+    this.THREE = THREE;
+  }
 
   getAll(): Enemy[] {
     return this.enemies;
   }
 
-  getMesh(id: string): Mesh | undefined {
+  getMesh(id: string): any /* THREE.Mesh */ | undefined {
     return this.enemyMeshes.get(id);
   }
 
@@ -45,12 +48,12 @@ export class EnemyController {
     this.enemies.push(enemy);
     // Create mesh
     const tileSize = 5;
-    const geometry = new SphereGeometry(tileSize / 3, 8, 8);
+    const geometry = new this.THREE.SphereGeometry(tileSize / 3, 8, 8);
     let color = 0xff0000;
     if (enemy.type === 'orc') color = 0x00cc00;
     if (enemy.type === 'ogre') color = 0x3333ff;
-    const material = new MeshToonMaterial({ color });
-    const mesh = new Mesh(geometry, material);
+    const material = new this.THREE.MeshToonMaterial({ color });
+    const mesh = new this.THREE.Mesh(geometry, material);
     mesh.userData.id = enemy.id;
     mesh.position.set(
       enemy.position.x * tileSize + tileSize / 2,
@@ -82,13 +85,13 @@ export class EnemyController {
   }
 
   // --- Animation Stubs (to be implemented with Anime.js) ---
-  animateSpawn(mesh: Mesh): void {
+  animateSpawn(mesh: any /* THREE.Mesh */): void {
     // Animate spawn portal or effect
   }
-  animateMovement(mesh: Mesh): void {
+  animateMovement(mesh: any /* THREE.Mesh */): void {
     // Animate movement along spline or with effects
   }
-  animateDeath(mesh: Mesh): void {
+  animateDeath(mesh: any /* THREE.Mesh */): void {
     // Animate death explosion or fade
   }
 }

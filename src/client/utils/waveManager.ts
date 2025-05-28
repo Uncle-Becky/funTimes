@@ -1,5 +1,3 @@
-// @ts-ignore
-import anime from 'animejs';
 import type { EnemyType } from '../../shared/types/game';
 
 export interface WaveDefinition {
@@ -11,8 +9,10 @@ export interface WaveDefinition {
 export class WaveManager {
   private waves: WaveDefinition[] = [];
   private currentWaveIndex = -1;
+  private anime: any;
 
-  constructor() {
+  constructor(animeInstance: any) {
+    this.anime = animeInstance;
     this.generateWaves();
   }
 
@@ -81,8 +81,8 @@ export class WaveManager {
       document.body.appendChild(el);
     }
     el.textContent = announcement;
-    anime.remove(el);
-    anime({
+    this.anime.remove(el);
+    this.anime({
       targets: el,
       translateY: [-100, 0],
       opacity: [0, 1],
@@ -90,7 +90,7 @@ export class WaveManager {
       easing: 'easeOutBack',
       complete: () => {
         setTimeout(() => {
-          anime({
+          this.anime({
             targets: el,
             translateY: [0, 100],
             opacity: [1, 0],

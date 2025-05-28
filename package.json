@@ -23,6 +23,7 @@
     "@devvit/public-api": "0.11.16-next-2025-05-12-ce8dc1307.0",
     "@devvit/server": "0.11.16-next-2025-05-12-ce8dc1307.0",
     "@tweenjs/tween.js": "18.6.4",
+    "animejs": "^4.0.2",
     "devvit": "1.0.0",
     "express": "5.1.0",
     "three": "0.137.5"
@@ -36,6 +37,7 @@
     "globals": "15.15.0",
     "prettier": "3.5.3",
     "prettier-package-json": "2.8.0",
+    "rollup-plugin-visualizer": "^5.14.0",
     "typescript": "5.8.2",
     "typescript-eslint": "8.29.0",
     "vite": "6.2.7",

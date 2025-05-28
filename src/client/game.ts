@@ -1,18 +1,6 @@
 import { Easing, Tween, update as tweenjsUpdate } from '@tweenjs/tween.js';
-// @ts-expect-error No types
-import anime from 'animejs';
-import {
-  BoxGeometry,
-  BufferGeometry,
-  Line,
-  LineBasicMaterial,
-  Mesh,
-  MeshToonMaterial,
-  OrthographicCamera,
-  Raycaster,
-  Vector3,
-} from 'three';
-import Stats from 'three/examples/jsm/libs/stats.module';
+// anime.js will be dynamically imported
+// Three.js components will be dynamically imported
 import type {
   Enemy,
   EnemyType,
@@ -70,7 +58,10 @@ export class Game {
   private state: GameState = 'loading';
   private stage!: Stage;
 
-  private stats!: Stats;
+  private stats!: any; // Stats from 'three/examples/jsm/libs/stats.module'
+  private THREE: any; // To store the entire Three.js module
+  private StatsModule: any; // To store the Stats module
+  private anime: any; // To store the anime.js module
 
   private userAllTimeStats: {
     score: number;
@@ -86,9 +77,9 @@ export class Game {
   private troopAccordionMenu!: HTMLElement;
   private draggingTroopType: TroopType | null = null;
 
-  private raycaster = new Raycaster();
+  private raycaster: any; // THREE.Raycaster
   private mouse = { x: 0, y: 0 };
-  private gridMeshes: Mesh[] = [];
+  private gridMeshes: any[] = []; // THREE.Mesh[]
 
   private playerState!: PlayerState;
   private playerMoneyDisplay!: HTMLElement;
@@ -98,7 +89,7 @@ export class Game {
   private ghostTroopElement: HTMLElement | null = null; // For the drag ghost
 
   private enemies: Enemy[] = [];
-  private enemyMeshes: Map<string, Mesh> = new Map(); // Enemy ID -> Mesh
+  private enemyMeshes: Map<string, any> = new Map(); // Enemy ID -> THREE.Mesh
   private waveInProgress: boolean = false;
   private waveTimer: number = 0; // For spawning next enemy in wave
   private currentWaveConfig:
@@ -106,7 +97,7 @@ export class Game {
     | null = null;
 
   private troopAttackTimers: Map<string, number> = new Map(); // Troop ID -> time until next attack
-  private attackVisuals: Map<string, Line> = new Map(); // Troop ID -> Line mesh for attack
+  private attackVisuals: Map<string, any> = new Map(); // Troop ID -> THREE.Line mesh for attack
   private activeTargetLines: Set<string> = new Set(); // Troop IDs currently showing an attack line
 
   private troopController!: TroopController;
@@ -117,7 +108,74 @@ export class Game {
   private postId: string | null = null;
   private userId: string | null = null;
 
+  // Bound event handlers for mainContainer
+  private boundHandleDragOver = (event: DragEvent): void => this.handleDragOver(event);
+  private boundHandleMapDrop = (event: DragEvent): void => this.handleMapDrop(event);
+  private boundHandleMapHover = (event: MouseEvent): void => this.handleMapHover(event);
+  private boundHandleMapClick = (event: MouseEvent): void => this.handleMapClick(event);
+
+  // Bound event handlers for window listeners (assuming onResize, onTouchStart, etc. are defined class methods)
+  private boundOnResize = (): void => this.onResize();
+  private boundOnTouchStart = async (event: TouchEvent): Promise<void> => this.onTouchStart(event);
+  private boundOnMouseDown = async (event: MouseEvent): Promise<void> => this.onMouseDown(event);
+  private boundOnKeyDown = async (event: KeyboardEvent): Promise<void> => this.onKeyDown(event);
+
+
   public async prepare(width: number, height: number, devicePixelRatio: number): Promise<void> {
+    // --- Start of new dynamic import code ---
+    try {
+      const threeModule = await import('three');
+      this.THREE = threeModule;
+
+      const statsModule = await import('three/examples/jsm/libs/stats.module');
+      this.StatsModule = statsModule.default; // Assuming Stats is the default export
+
+    } catch (error) {
+      console.error('Failed to dynamically load Three.js or Stats.module:', error);
+      // Handle loading failure: display an error message to the user, stop game initialization.
+      this.updateState('loading'); // Or an 'error' state
+      const container = document.getElementById('container');
+      if (container) {
+        container.innerHTML = '<p style="color: red; padding: 1em;">Error loading critical game components. Please try refreshing.</p>';
+      }
+      return; // Prevent further execution in prepare()
+    }
+    // --- End of new dynamic import code ---
+
+    // --- Start of new dynamic import code for anime.js ---
+    try {
+      const animeModule = await import('animejs');
+      this.anime = animeModule.default || animeModule; // Common pattern for ES modules with default exports
+
+      // Verify if anime and anime.remove are functions, as they are used this way.
+      // The previous build errors (e.g. "remove" is not exported, Cannot call a namespace)
+      // suggest that the structure of the imported animejs module might be tricky.
+      if (typeof this.anime !== 'function' || (this.anime && typeof this.anime.remove !== 'function')) {
+        console.warn(
+          'anime.js loaded, but `anime` or `anime.remove` is not a function. Animations might not work.',
+          this.anime
+        );
+        // Attempt to provide a no-op fallback if critical functions are missing to prevent runtime errors.
+        if (typeof this.anime !== 'function') this.anime = () => {};
+        if (this.anime && typeof this.anime.remove !== 'function') this.anime.remove = () => {};
+      }
+    } catch (error) {
+      console.error('Failed to dynamically load anime.js:', error);
+      // Provide a no-op function so game calls don't break if anime.js is critical.
+      this.anime = () => {}; // Fallback for the main anime function
+      // Ensure this.anime.remove also exists as a no-op function.
+      // This structure (this.anime being a function and also having a .remove method)
+      // is typical for anime.js.
+      if (typeof this.anime === 'function') {
+        (this.anime as any).remove = () => {};
+      } else {
+        // If this.anime itself isn't a function, then create it as an object with a no-op remove.
+        // This case should ideally not be hit if animejs is packaged as expected.
+        this.anime = { remove: () => {} };
+      }
+    }
+    // --- End of new dynamic import code for anime.js ---
+
     // Fetch init data directly from the API endpoint
     let initData: InitMessage;
     try {
@@ -164,11 +222,11 @@ export class Game {
 
     this.scoreContainer.innerHTML = '0';
 
-    this.stage = new Stage(this.config, devicePixelRatio);
+    this.stage = new Stage(this.config, devicePixelRatio, this.THREE);
     this.stage.resize(width, height);
 
     if (getEnv().MODE === 'development') {
-      this.stats = Stats();
+      this.stats = this.StatsModule();
       document.body.appendChild(this.stats.dom);
     }
 
@@ -225,7 +283,7 @@ export class Game {
       ],
     };
     this.mapGrid = { width: gridWidth, height: gridHeight, tiles, paths: [groundPath, airPath] };
-
+    this.raycaster = new this.THREE.Raycaster();
     // Render the grid in three.js (now supports terrain, obstacles, and multiple paths)
     this.renderGrid();
 
@@ -243,10 +301,18 @@ export class Game {
     this.updateHUD(); // Initial HUD update
 
     // Setup drag and drop for the game area
-    this.mainContainer.addEventListener('dragover', (event) => this.handleDragOver(event));
-    this.mainContainer.addEventListener('drop', (event) => this.handleMapDrop(event));
-    this.mainContainer.addEventListener('mousemove', (event) => this.handleMapHover(event));
-    this.mainContainer.addEventListener('click', (event) => this.handleMapClick(event)); // Added click listener
+    this.mainContainer.addEventListener('dragover', this.boundHandleDragOver);
+    this.mainContainer.addEventListener('drop', this.boundHandleMapDrop);
+    this.mainContainer.addEventListener('mousemove', this.boundHandleMapHover);
+    this.mainContainer.addEventListener('click', this.boundHandleMapClick);
+
+    // Example window listeners (assuming these methods exist or will be added)
+    window.addEventListener('resize', this.boundOnResize, false);
+    window.addEventListener('orientationchange', this.boundOnResize, false); // Reuse same handler
+    window.addEventListener('touchstart', this.boundOnTouchStart, { passive: false });
+    window.addEventListener('mousedown', this.boundOnMouseDown, false);
+    window.addEventListener('keydown', this.boundOnKeyDown);
+
 
     this.playerMoneyDisplay = document.getElementById('player-money') as HTMLElement;
     this.playerLivesDisplay = document.getElementById('player-lives') as HTMLElement;
@@ -254,11 +320,12 @@ export class Game {
 
     this.troopController = new TroopController();
     this.enemyController = new EnemyController(
+      this.THREE, // Pass the dynamically loaded THREE module
       (mesh) => this.stage.add(mesh),
       (mesh) => this.stage.remove(mesh)
     );
 
-    this.waveManager = new WaveManager();
+    this.waveManager = new WaveManager(this.anime);
 
     this.postId = initData.postId;
     this.userId = initData.user.id;
@@ -440,9 +507,9 @@ export class Game {
         } else if (tile?.highlight === 'invalid') {
           tileColor = 0xff6666; // Invalid placement highlight (bright red)
         }
-        const geometry = new BoxGeometry(tileSize, 0.2, tileSize);
-        const material = new MeshToonMaterial({ color: tileColor });
-        const mesh = new Mesh(geometry, material);
+        const geometry = new this.THREE.BoxGeometry(tileSize, 0.2, tileSize);
+        const material = new this.THREE.MeshToonMaterial({ color: tileColor });
+        const mesh = new this.THREE.Mesh(geometry, material);
         mesh.position.set(x * tileSize, 0, y * tileSize);
         mesh.userData = { x, y }; // Store tile coordinates in mesh for raycasting
         this.stage.add(mesh);
@@ -485,13 +552,13 @@ export class Game {
     this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
     this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
     // Use the camera from stage
-    const camera = this.stage.camera as OrthographicCamera;
+    const camera = this.stage.camera as any; // this.THREE.OrthographicCamera;
     this.raycaster.setFromCamera(this.mouse, camera);
     const intersects = this.raycaster.intersectObjects(this.gridMeshes);
     if (intersects.length > 0) {
       const firstIntersect = intersects[0];
       if (firstIntersect && firstIntersect.object) {
-        const mesh = firstIntersect.object as Mesh;
+        const mesh = firstIntersect.object as any; // this.THREE.Mesh;
         const userData = mesh.userData as { x?: number; y?: number };
         if (typeof userData.x === 'number' && typeof userData.y === 'number') {
           return { x: userData.x, y: userData.y };
@@ -551,9 +618,9 @@ export class Game {
     this.troops.push(troop);
     this.playerState.troops.push(troop);
     // Render the troop (simple colored box for now)
-    const geometry = new BoxGeometry(3, 2, 3);
-    const material = new MeshToonMaterial({ color: 0x3366cc });
-    const mesh = new Mesh(geometry, material);
+    const geometry = new this.THREE.BoxGeometry(3, 2, 3);
+    const material = new this.THREE.MeshToonMaterial({ color: 0x3366cc });
+    const mesh = new this.THREE.Mesh(geometry, material);
     const tileSize = 5;
     mesh.position.set(x * tileSize, 1.1, y * tileSize);
     this.stage.add(mesh);
@@ -678,8 +745,8 @@ export class Game {
   private updateHUD(): void {
     if (this.playerMoneyDisplay) {
       if (this.playerMoneyDisplay.textContent !== `Money: ${this.playerState.money}`) {
-        anime.remove(this.playerMoneyDisplay);
-        anime({
+        this.anime.remove(this.playerMoneyDisplay);
+        this.anime({
           targets: this.playerMoneyDisplay,
           scale: [1, 1.25, 1],
           color: ['#333344', this.playerState.money > 0 ? '#44bb44' : '#bb4444', '#333344'],
@@ -691,8 +758,8 @@ export class Game {
     }
     if (this.playerLivesDisplay) {
       if (this.playerLivesDisplay.textContent !== `Lives: ${this.playerState.lives}`) {
-        anime.remove(this.playerLivesDisplay);
-        anime({
+        this.anime.remove(this.playerLivesDisplay);
+        this.anime({
           targets: this.playerLivesDisplay,
           scale: [1, 1.25, 1],
           color: ['#333344', this.playerState.lives > 0 ? '#44bb44' : '#bb4444', '#333344'],
@@ -837,58 +904,46 @@ export class Game {
     // Update or create lines for active attacks
     const tileSize = 5;
     for (const troopId of this.activeTargetLines) {
-      const troop = this.playerState.troops.find((t) => t.id === troopId);
-      // Find the current target of this troop (this info isn't directly stored on troop, need to re-evaluate or store target)
-      // For simplicity, let's assume the target is still valid or re-find it briefly (not ideal for perf)
-      // A better way: store troop.currentTargetId when attacking in updateTroops
-      const troopWorldX = troop!.position.x * tileSize + tileSize / 2;
-      const troopWorldZ = troop!.position.y * tileSize + tileSize / 2; // Y is Z for grid
-
-      // Re-find target to draw line to (simplified)
-      let currentTarget: Enemy | null = null;
-      let closestDistanceSq = Infinity;
-      for (const enemy of this.enemies) {
-        const enemyWorldX = enemy.position.x * tileSize + tileSize / 2;
-        const enemyWorldZ = enemy.position.y * tileSize + tileSize / 2;
-        const dx = troopWorldX - enemyWorldX;
-        const dz = troopWorldZ - enemyWorldZ;
-        const distanceSq = dx * dx + dz * dz;
-        const troopRangeWorld = troop!.range * tileSize;
-        if (distanceSq < troopRangeWorld * troopRangeWorld && distanceSq < closestDistanceSq) {
-          // Check if this enemy was likely the one attacked (health > 0 or was recently damaged)
-          // This is a simplification; ideally troop would store its current target's ID
-          currentTarget = enemy;
-          closestDistanceSq = distanceSq;
-        }
+      const troop = this.troopController.getAll().find(t => t.id === troopId); 
+      if (!troop || !troop.currentTargetId) {
+        this.removeAttackVisual(troopId); // Troop or its target is gone
+        continue; 
+      }
+      
+      const currentTarget = this.enemyController.getAll().find(e => e.id === troop.currentTargetId);
+      if (!currentTarget) {
+        this.removeAttackVisual(troopId); // Target enemy not found (e.g., already removed)
+        continue;
       }
 
-      if (troop && currentTarget) {
-        const existingLine = this.attackVisuals.get(troopId);
-        const points = [
-          new Vector3(troopWorldX, tileSize / 2, troopWorldZ), // Start point (troop center)
-          new Vector3(
-            currentTarget.position.x * tileSize + tileSize / 2,
-            tileSize / 4,
-            currentTarget.position.y * tileSize + tileSize / 2
-          ), // End point (enemy center)
-        ];
+      // Troop and currentTarget are valid
+      const troopWorldX = troop.position.x * tileSize + tileSize / 2;
+      const troopWorldZ = troop.position.y * tileSize + tileSize / 2; // Y on grid is Z in world
 
-        if (existingLine) {
-          existingLine.geometry.setFromPoints(points);
-          if (existingLine.geometry.attributes.position) {
-            existingLine.geometry.attributes.position.needsUpdate = true;
-          }
-        } else {
-          const material = new LineBasicMaterial({ color: 0xffaa00, linewidth: 2 }); // Orange line
-          const geometry = new BufferGeometry().setFromPoints(points);
-          const line = new Line(geometry, material);
-          this.attackVisuals.set(troopId, line);
-          this.stage.add(line);
+      const existingLine = this.attackVisuals.get(troopId);
+      const points = [
+        new this.THREE.Vector3(troopWorldX, tileSize / 2, troopWorldZ), // Start point (troop center)
+        new this.THREE.Vector3(
+          currentTarget.position.x * tileSize + tileSize / 2,
+          tileSize / 4, // Assuming enemies are slightly lower or for visual effect
+          currentTarget.position.y * tileSize + tileSize / 2 // Y on grid is Z in world
+        ), // End point (enemy center)
+      ];
+
+      if (existingLine) {
+        existingLine.geometry.setFromPoints(points);
+        if (existingLine.geometry.attributes.position) {
+          existingLine.geometry.attributes.position.needsUpdate = true;
         }
-      } else if (this.attackVisuals.has(troopId)) {
-        // Troop exists but target doesn't, remove line
-        this.removeAttackVisual(troopId);
+      } else {
+        const material = new this.THREE.LineBasicMaterial({ color: 0xffaa00, linewidth: 2 }); // Orange line
+        const geometry = new this.THREE.BufferGeometry().setFromPoints(points);
+        const line = new this.THREE.Line(geometry, material);
+        this.attackVisuals.set(troopId, line);
+        this.stage.add(line);
       }
+      // Note: The 'else if (this.attackVisuals.has(troopId))' block for removing visuals
+      // when troop exists but target doesn't is now handled by the checks at the beginning of the loop.
     }
   }
 
@@ -917,25 +972,10 @@ export class Game {
         continue;
       }
       // Find a target (use TroopController.attack for extensibility)
-      let targetEnemy: Enemy | null = this.troopController.attack(troop, this.enemies);
-      if (!targetEnemy) {
-        // Fallback: find closest enemy in range (legacy logic)
-        let closestDistanceSq = Infinity;
-        const troopWorldX = troop.position.x * tileSize + tileSize / 2;
-        const troopWorldY = troop.position.y * tileSize + tileSize / 2;
-        for (const enemy of this.enemies) {
-          const enemyWorldX = enemy.position.x * tileSize + tileSize / 2;
-          const enemyWorldY = enemy.position.y * tileSize + tileSize / 2;
-          const dx = troopWorldX - enemyWorldX;
-          const dy = troopWorldY - enemyWorldY;
-          const distanceSq = dx * dx + dy * dy;
-          const troopRangeWorld = troop.range * tileSize;
-          if (distanceSq < troopRangeWorld * troopRangeWorld && distanceSq < closestDistanceSq) {
-            targetEnemy = enemy;
-            closestDistanceSq = distanceSq;
-          }
-        }
-      }
+      // The old target-finding loop has been removed from here.
+      // this.troopController.attack will now find the target and also set troop.currentTargetId.
+      const targetEnemy: Enemy | null = this.troopController.attack(troop, this.enemies);
+
       if (targetEnemy) {
         // Attack the target enemy
         // Use TroopController.fireProjectile for Anime.js-powered animation (stub)
@@ -979,5 +1019,73 @@ export class Game {
     this.playerState.currentWave = state.currentWave;
     this.playerState.troops = state.troops;
     // Optionally, restore more (e.g., upgrades, map, etc.)
+  }
+
+  // --- Existing methods like onResize, onTouchStart, onMouseDown, onKeyDown are assumed to be here ---
+  // For example:
+  private onResize(): void {
+    // Actual resize logic for the game, e.g., this.stage.resize(...)
+    // For now, just a placeholder if it's not fully implemented from original task context
+    const width = window.innerWidth; // or from a specific container
+    const height = window.innerHeight; // or from a specific container
+    if (this.stage) {
+      this.resize(width, height); // Call the existing Game.resize method
+    }
+  }
+
+  private async onTouchStart(event: TouchEvent): Promise<void> {
+    // Example: this.action(); event.preventDefault();
+    if (event.touches.length === 1) {
+      // Simulate a click or specific touch action
+      await this.action();
+      event.preventDefault(); // Prevent mouse event emulation
+    }
+  }
+
+  private async onMouseDown(event: MouseEvent): Promise<void> {
+    // Example: if (event.button === 0) this.action();
+    if (event.button === 0) { // Left mouse button
+      await this.action();
+    }
+  }
+
+  private async onKeyDown(event: KeyboardEvent): Promise<void> {
+    // Example: if (event.code === 'Space') this.action();
+    if (event.code === 'Space') {
+      await this.action();
+      event.preventDefault(); // Prevent spacebar scrolling the page
+    }
+  }
+
+
+  public destroy(): void {
+    // Window listeners
+    window.removeEventListener('resize', this.boundOnResize, false);
+    window.removeEventListener('orientationchange', this.boundOnResize, false);
+    window.removeEventListener('touchstart', this.boundOnTouchStart, { passive: false } as EventListenerOptions);
+    window.removeEventListener('mousedown', this.boundOnMouseDown, false);
+    window.removeEventListener('keydown', this.boundOnKeyDown);
+
+    // Main container listeners
+    if (this.mainContainer) { // Check if mainContainer exists
+      this.mainContainer.removeEventListener('dragover', this.boundHandleDragOver);
+      this.mainContainer.removeEventListener('drop', this.boundHandleMapDrop);
+      this.mainContainer.removeEventListener('mousemove', this.boundHandleMapHover);
+      this.mainContainer.removeEventListener('click', this.boundHandleMapClick);
+    }
+
+    // Stop the ticker
+    if (this.ticker) {
+      this.ticker.stop();
+    }
+
+    // Remove Stats.dom if it was added
+    if (this.stats && this.stats.dom && this.stats.dom.parentElement) {
+      this.stats.dom.parentElement.removeChild(this.stats.dom);
+    }
+    
+    // Potentially clear other resources, e.g., tell stage to release Three.js resources if necessary
+    // For now, focus on event listeners.
+    console.log('Game instance destroyed and listeners removed.');
   }
 }

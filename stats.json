@@ -1,0 +1,471 @@
+{
+  "version": 2,
+  "tree": {
+    "name": "root",
+    "children": [
+      {
+        "name": "assets/index-1F4KrkEz.js",
+        "children": [
+          {
+            "name": "\u0000vite",
+            "children": [
+              {
+                "uid": "953752a0-1",
+                "name": "modulepreload-polyfill.js"
+              },
+              {
+                "uid": "953752a0-5",
+                "name": "preload-helper.js"
+              }
+            ]
+          },
+          {
+            "uid": "953752a0-3",
+            "name": "style.css"
+          },
+          {
+            "name": "app/node_modules/@tweenjs/tween.js/dist/tween.esm.js",
+            "uid": "953752a0-7"
+          },
+          {
+            "uid": "953752a0-9",
+            "name": "devvit.ts"
+          },
+          {
+            "uid": "953752a0-11",
+            "name": "stage.ts"
+          },
+          {
+            "uid": "953752a0-13",
+            "name": "ticker.ts"
+          },
+          {
+            "name": "utils",
+            "children": [
+              {
+                "uid": "953752a0-15",
+                "name": "enemyController.ts"
+              },
+              {
+                "uid": "953752a0-17",
+                "name": "troopController.ts"
+              },
+              {
+                "uid": "953752a0-19",
+                "name": "waveManager.ts"
+              }
+            ]
+          },
+          {
+            "uid": "953752a0-21",
+            "name": "game.ts"
+          },
+          {
+            "uid": "953752a0-23",
+            "name": "main.ts"
+          },
+          {
+            "uid": "953752a0-25",
+            "name": "index.html"
+          }
+        ]
+      },
+      {
+        "name": "assets/three.module-7a0IT1WR.js",
+        "children": [
+          {
+            "name": "app/node_modules/three/build/three.module.js",
+            "uid": "953752a0-27"
+          }
+        ]
+      },
+      {
+        "name": "assets/stats.module-BL02l9NC.js",
+        "children": [
+          {
+            "name": "app/node_modules/three/examples/jsm/libs/stats.module.js",
+            "uid": "953752a0-29"
+          }
+        ]
+      },
+      {
+        "name": "assets/anime.esm-C311E1AQ.js",
+        "children": [
+          {
+            "name": "app/node_modules/animejs/lib/anime.esm.js",
+            "uid": "953752a0-31"
+          }
+        ]
+      }
+    ],
+    "isRoot": true
+  },
+  "nodeParts": {
+    "953752a0-1": {
+      "renderedLength": 1280,
+      "gzipLength": 0,
+      "brotliLength": 0,
+      "metaUid": "953752a0-0"
+    },
+    "953752a0-3": {
+      "renderedLength": 0,
+      "gzipLength": 0,
+      "brotliLength": 0,
+      "metaUid": "953752a0-2"
+    },
+    "953752a0-5": {
+      "renderedLength": 1928,
+      "gzipLength": 0,
+      "brotliLength": 0,
+      "metaUid": "953752a0-4"
+    },
+    "953752a0-7": {
+      "renderedLength": 20502,
+      "gzipLength": 0,
+      "brotliLength": 0,
+      "metaUid": "953752a0-6"
+    },
+    "953752a0-9": {
+      "renderedLength": 1797,
+      "gzipLength": 0,
+      "brotliLength": 0,
+      "metaUid": "953752a0-8"
+    },
+    "953752a0-11": {
+      "renderedLength": 2890,
+      "gzipLength": 0,
+      "brotliLength": 0,
+      "metaUid": "953752a0-10"
+    },
+    "953752a0-13": {
+      "renderedLength": 1253,
+      "gzipLength": 0,
+      "brotliLength": 0,
+      "metaUid": "953752a0-12"
+    },
+    "953752a0-15": {
+      "renderedLength": 2009,
+      "gzipLength": 0,
+      "brotliLength": 0,
+      "metaUid": "953752a0-14"
+    },
+    "953752a0-17": {
+      "renderedLength": 1794,
+      "gzipLength": 0,
+      "brotliLength": 0,
+      "metaUid": "953752a0-16"
+    },
+    "953752a0-19": {
+      "renderedLength": 2278,
+      "gzipLength": 0,
+      "brotliLength": 0,
+      "metaUid": "953752a0-18"
+    },
+    "953752a0-21": {
+      "renderedLength": 31252,
+      "gzipLength": 0,
+      "brotliLength": 0,
+      "metaUid": "953752a0-20"
+    },
+    "953752a0-23": {
+      "renderedLength": 925,
+      "gzipLength": 0,
+      "brotliLength": 0,
+      "metaUid": "953752a0-22"
+    },
+    "953752a0-25": {
+      "renderedLength": 0,
+      "gzipLength": 0,
+      "brotliLength": 0,
+      "metaUid": "953752a0-24"
+    },
+    "953752a0-27": {
+      "renderedLength": 1170514,
+      "gzipLength": 0,
+      "brotliLength": 0,
+      "metaUid": "953752a0-26"
+    },
+    "953752a0-29": {
+      "renderedLength": 3490,
+      "gzipLength": 0,
+      "brotliLength": 0,
+      "metaUid": "953752a0-28"
+    },
+    "953752a0-31": {
+      "renderedLength": 259418,
+      "gzipLength": 0,
+      "brotliLength": 0,
+      "metaUid": "953752a0-30"
+    }
+  },
+  "nodeMetas": {
+    "953752a0-0": {
+      "id": "\u0000vite/modulepreload-polyfill.js",
+      "moduleParts": {
+        "assets/index-1F4KrkEz.js": "953752a0-1"
+      },
+      "imported": [],
+      "importedBy": [
+        {
+          "uid": "953752a0-24"
+        }
+      ]
+    },
+    "953752a0-2": {
+      "id": "/style.css",
+      "moduleParts": {
+        "assets/index-1F4KrkEz.js": "953752a0-3"
+      },
+      "imported": [],
+      "importedBy": [
+        {
+          "uid": "953752a0-24"
+        }
+      ]
+    },
+    "953752a0-4": {
+      "id": "\u0000vite/preload-helper.js",
+      "moduleParts": {
+        "assets/index-1F4KrkEz.js": "953752a0-5"
+      },
+      "imported": [],
+      "importedBy": [
+        {
+          "uid": "953752a0-20"
+        }
+      ]
+    },
+    "953752a0-6": {
+      "id": "/app/node_modules/@tweenjs/tween.js/dist/tween.esm.js",
+      "moduleParts": {
+        "assets/index-1F4KrkEz.js": "953752a0-7"
+      },
+      "imported": [],
+      "importedBy": [
+        {
+          "uid": "953752a0-20"
+        },
+        {
+          "uid": "953752a0-10"
+        }
+      ]
+    },
+    "953752a0-8": {
+      "id": "/devvit.ts",
+      "moduleParts": {
+        "assets/index-1F4KrkEz.js": "953752a0-9"
+      },
+      "imported": [],
+      "importedBy": [
+        {
+          "uid": "953752a0-20"
+        }
+      ]
+    },
+    "953752a0-10": {
+      "id": "/stage.ts",
+      "moduleParts": {
+        "assets/index-1F4KrkEz.js": "953752a0-11"
+      },
+      "imported": [
+        {
+          "uid": "953752a0-6"
+        }
+      ],
+      "importedBy": [
+        {
+          "uid": "953752a0-20"
+        }
+      ]
+    },
+    "953752a0-12": {
+      "id": "/ticker.ts",
+      "moduleParts": {
+        "assets/index-1F4KrkEz.js": "953752a0-13"
+      },
+      "imported": [],
+      "importedBy": [
+        {
+          "uid": "953752a0-20"
+        }
+      ]
+    },
+    "953752a0-14": {
+      "id": "/utils/enemyController.ts",
+      "moduleParts": {
+        "assets/index-1F4KrkEz.js": "953752a0-15"
+      },
+      "imported": [],
+      "importedBy": [
+        {
+          "uid": "953752a0-20"
+        }
+      ]
+    },
+    "953752a0-16": {
+      "id": "/utils/troopController.ts",
+      "moduleParts": {
+        "assets/index-1F4KrkEz.js": "953752a0-17"
+      },
+      "imported": [],
+      "importedBy": [
+        {
+          "uid": "953752a0-20"
+        }
+      ]
+    },
+    "953752a0-18": {
+      "id": "/utils/waveManager.ts",
+      "moduleParts": {
+        "assets/index-1F4KrkEz.js": "953752a0-19"
+      },
+      "imported": [],
+      "importedBy": [
+        {
+          "uid": "953752a0-20"
+        }
+      ]
+    },
+    "953752a0-20": {
+      "id": "/game.ts",
+      "moduleParts": {
+        "assets/index-1F4KrkEz.js": "953752a0-21"
+      },
+      "imported": [
+        {
+          "uid": "953752a0-4"
+        },
+        {
+          "uid": "953752a0-6"
+        },
+        {
+          "uid": "953752a0-8"
+        },
+        {
+          "uid": "953752a0-10"
+        },
+        {
+          "uid": "953752a0-12"
+        },
+        {
+          "uid": "953752a0-14"
+        },
+        {
+          "uid": "953752a0-32"
+        },
+        {
+          "uid": "953752a0-16"
+        },
+        {
+          "uid": "953752a0-18"
+        },
+        {
+          "uid": "953752a0-26",
+          "dynamic": true
+        },
+        {
+          "uid": "953752a0-28",
+          "dynamic": true
+        },
+        {
+          "uid": "953752a0-30",
+          "dynamic": true
+        }
+      ],
+      "importedBy": [
+        {
+          "uid": "953752a0-22"
+        }
+      ]
+    },
+    "953752a0-22": {
+      "id": "/main.ts",
+      "moduleParts": {
+        "assets/index-1F4KrkEz.js": "953752a0-23"
+      },
+      "imported": [
+        {
+          "uid": "953752a0-20"
+        }
+      ],
+      "importedBy": [
+        {
+          "uid": "953752a0-24"
+        }
+      ]
+    },
+    "953752a0-24": {
+      "id": "/index.html",
+      "moduleParts": {
+        "assets/index-1F4KrkEz.js": "953752a0-25"
+      },
+      "imported": [
+        {
+          "uid": "953752a0-0"
+        },
+        {
+          "uid": "953752a0-2"
+        },
+        {
+          "uid": "953752a0-22"
+        }
+      ],
+      "importedBy": [],
+      "isEntry": true
+    },
+    "953752a0-26": {
+      "id": "/app/node_modules/three/build/three.module.js",
+      "moduleParts": {
+        "assets/three.module-7a0IT1WR.js": "953752a0-27"
+      },
+      "imported": [],
+      "importedBy": [
+        {
+          "uid": "953752a0-20"
+        }
+      ]
+    },
+    "953752a0-28": {
+      "id": "/app/node_modules/three/examples/jsm/libs/stats.module.js",
+      "moduleParts": {
+        "assets/stats.module-BL02l9NC.js": "953752a0-29"
+      },
+      "imported": [],
+      "importedBy": [
+        {
+          "uid": "953752a0-20"
+        }
+      ]
+    },
+    "953752a0-30": {
+      "id": "/app/node_modules/animejs/lib/anime.esm.js",
+      "moduleParts": {
+        "assets/anime.esm-C311E1AQ.js": "953752a0-31"
+      },
+      "imported": [],
+      "importedBy": [
+        {
+          "uid": "953752a0-20"
+        }
+      ]
+    },
+    "953752a0-32": {
+      "id": "/utils/env.ts",
+      "moduleParts": {},
+      "imported": [],
+      "importedBy": [
+        {
+          "uid": "953752a0-20"
+        }
+      ]
+    }
+  },
+  "env": {
+    "rollup": "4.40.2"
+  },
+  "options": {
+    "gzip": false,
+    "brotli": false,
+    "sourcemap": false
+  }
+}

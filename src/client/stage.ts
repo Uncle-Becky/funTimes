@@ -1,26 +1,20 @@
 import { Easing, Tween } from '@tweenjs/tween.js';
-import {
-  AmbientLight,
-  DirectionalLight,
-  Object3D,
-  OrthographicCamera,
-  Scene,
-  WebGLRenderer,
-} from 'three';
 import type { PostConfig } from '../shared/types/postConfig';
 
 export class Stage {
   private container: HTMLElement;
-  private scene: Scene;
-  private renderer!: WebGLRenderer;
-  public camera!: OrthographicCamera;
+  private scene: any; // THREE.Scene
+  private renderer!: any; // THREE.WebGLRenderer
+  public camera!: any; // THREE.OrthographicCamera
 
   private config: PostConfig;
+  private THREE: any;
 
-  constructor(config: PostConfig, devicePixelRatio: number) {
+  constructor(config: PostConfig, devicePixelRatio: number, THREE: any) {
     this.config = config;
+    this.THREE = THREE;
     this.container = document.getElementById('game') as HTMLElement;
-    this.scene = new Scene();
+    this.scene = new this.THREE.Scene();
 
     this.setupRenderer(devicePixelRatio);
     this.setupCamera();
@@ -43,23 +37,23 @@ export class Stage {
     this.renderer.setSize(width, height);
   }
 
-  public add(object: Object3D): void {
+  public add(object: any /* THREE.Object3D */): void {
     this.scene.add(object);
   }
 
-  public remove(object: Object3D): void {
+  public remove(object: any /* THREE.Object3D */): void {
     this.scene.remove(object);
   }
 
   public removeMeshesByType(type: string): void {
     const meshesToRemove = this.scene.children.filter(
-      (child) => child.userData.type === type && child instanceof Object3D
+      (child: any) => child.userData.type === type && child instanceof this.THREE.Object3D
     );
-    meshesToRemove.forEach((mesh) => this.scene.remove(mesh));
+    meshesToRemove.forEach((mesh: any) => this.scene.remove(mesh));
   }
 
   private setupRenderer(devicePixelRatio: number): void {
-    this.renderer = new WebGLRenderer({
+    this.renderer = new this.THREE.WebGLRenderer({
       antialias: true,
       alpha: false,
     });
@@ -70,7 +64,7 @@ export class Stage {
 
   private setupCamera(): void {
     const { near, far, position, lookAt, offset } = this.config.camera;
-    this.camera = new OrthographicCamera();
+    this.camera = new this.THREE.OrthographicCamera();
     this.camera.near = near;
     this.camera.far = far;
     this.camera.position.set(position.x, position.y, position.z);
@@ -80,14 +74,14 @@ export class Stage {
 
   private setupDirectionalLight(): void {
     const { color, intensity, position } = this.config.light.directional;
-    const directionalLight = new DirectionalLight(parseInt(color, 16), intensity);
+    const directionalLight = new this.THREE.DirectionalLight(parseInt(color, 16), intensity);
     directionalLight.position.set(position.x, position.y, position.z);
     this.add(directionalLight);
   }
 
   private setupAmbientLight(): void {
     const { color, intensity, position } = this.config.light.ambient;
-    const ambientLight = new AmbientLight(parseInt(color, 16), intensity);
+    const ambientLight = new this.THREE.AmbientLight(parseInt(color, 16), intensity);
     ambientLight.position.set(position.x, position.y, position.z);
     this.add(ambientLight);
   }
@@ -107,7 +101,7 @@ export class Stage {
       .start();
   }
 
-  public getCamera(): OrthographicCamera {
+  public getCamera(): any /* THREE.OrthographicCamera */ {
     return this.camera;
   }
 }
