@@ -1,4 +1,5 @@
 import type { EnemyType } from '../../shared/types/game';
+import type anime from 'animejs'; // Import animejs types
 
 export interface WaveDefinition {
   enemies: Array<{ type: EnemyType; count: number; pathId?: string }>;
@@ -9,9 +10,9 @@ export interface WaveDefinition {
 export class WaveManager {
   private waves: WaveDefinition[] = [];
   private currentWaveIndex = -1;
-  private anime: any;
+  private anime: typeof anime; // Use the imported anime type
 
-  constructor(animeInstance: any) {
+  constructor(animeInstance: typeof anime) { // Use the imported anime type
     this.anime = animeInstance;
     this.generateWaves();
   }

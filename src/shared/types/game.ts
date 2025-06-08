@@ -71,7 +71,7 @@ export interface TroopStatusEffect {
 
 export interface Enemy {
   id: string;
-  type: string;
+  type: EnemyType;
   health: number;
   speed: number;
   position: { x: number; y: number };
@@ -104,7 +104,7 @@ export interface MapGrid {
 }
 
 export interface Wave {
-  enemies: Array<{ type: string; count: number; pathId?: string }>;
+  enemies: Array<{ type: EnemyType; count: number; pathId?: string }>;
 }
 
 export interface PlayerState {

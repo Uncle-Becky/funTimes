@@ -1,6 +1,10 @@
 import { Easing, Tween, update as tweenjsUpdate } from '@tweenjs/tween.js';
 // anime.js will be dynamically imported
 // Three.js components will be dynamically imported
+import type * as ThreeType from 'three'; // For getting Three.js component types
+import type StatsType from 'three/examples/jsm/libs/stats.module'; // For Stats type
+import type anime from 'animejs'; // Import animejs types
+
 import type {
   Enemy,
   EnemyType,
@@ -14,9 +18,9 @@ import type {
   Troop,
   TroopType,
 } from '../shared/types/game';
-import { InitMessage } from '../shared/types/message';
+import type { InitMessage } from '../shared/types/message';
 import type { PostConfig } from '../shared/types/postConfig';
-import { User } from '../shared/types/user';
+import type { User } from '../shared/types/user';
 import { Devvit } from './devvit';
 import { Stage } from './stage';
 import { Ticker } from './ticker';
@@ -58,10 +62,10 @@ export class Game {
   private state: GameState = 'loading';
   private stage!: Stage;
 
-  private stats!: any; // Stats from 'three/examples/jsm/libs/stats.module'
-  private THREE: any; // To store the entire Three.js module
-  private StatsModule: any; // To store the Stats module
-  private anime: any; // To store the anime.js module
+  private stats!: StatsType;
+  private THREE!: typeof ThreeType;
+  private StatsModule!: typeof StatsType;
+  private anime!: typeof anime; // Use the imported anime type
 
   private userAllTimeStats: {
     score: number;
@@ -77,9 +81,9 @@ export class Game {
   private troopAccordionMenu!: HTMLElement;
   private draggingTroopType: TroopType | null = null;
 
-  private raycaster: any; // THREE.Raycaster
+  private raycaster!: ThreeType.Raycaster;
   private mouse = { x: 0, y: 0 };
-  private gridMeshes: any[] = []; // THREE.Mesh[]
+  private gridMeshes: ThreeType.Mesh[] = [];
 
   private playerState!: PlayerState;
   private playerMoneyDisplay!: HTMLElement;
@@ -89,7 +93,7 @@ export class Game {
   private ghostTroopElement: HTMLElement | null = null; // For the drag ghost
 
   private enemies: Enemy[] = [];
-  private enemyMeshes: Map<string, any> = new Map(); // Enemy ID -> THREE.Mesh
+  private enemyMeshes: Map<string, ThreeType.Mesh> = new Map();
   private waveInProgress: boolean = false;
   private waveTimer: number = 0; // For spawning next enemy in wave
   private currentWaveConfig:
@@ -97,7 +101,7 @@ export class Game {
     | null = null;
 
   private troopAttackTimers: Map<string, number> = new Map(); // Troop ID -> time until next attack
-  private attackVisuals: Map<string, any> = new Map(); // Troop ID -> THREE.Line mesh for attack
+  private attackVisuals: Map<string, ThreeType.Line> = new Map();
   private activeTargetLines: Set<string> = new Set(); // Troop IDs currently showing an attack line
 
   private troopController!: TroopController;
@@ -167,7 +171,9 @@ export class Game {
       // This structure (this.anime being a function and also having a .remove method)
       // is typical for anime.js.
       if (typeof this.anime === 'function') {
-        (this.anime as any).remove = () => {};
+        // If this.anime is a function, @types/animejs might type .remove directly on it.
+        // If not, this cast might be needed, or a more complex type for this.anime.
+        (this.anime as any).remove = () => {}; // Keep as any for now if type is complex
       } else {
         // If this.anime itself isn't a function, then create it as an object with a no-op remove.
         // This case should ideally not be hit if animejs is packaged as expected.
@@ -552,13 +558,13 @@ export class Game {
     this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
     this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
     // Use the camera from stage
-    const camera = this.stage.camera as any; // this.THREE.OrthographicCamera;
+    const camera = this.stage.camera as ThreeType.OrthographicCamera;
     this.raycaster.setFromCamera(this.mouse, camera);
     const intersects = this.raycaster.intersectObjects(this.gridMeshes);
     if (intersects.length > 0) {
       const firstIntersect = intersects[0];
       if (firstIntersect && firstIntersect.object) {
-        const mesh = firstIntersect.object as any; // this.THREE.Mesh;
+        const mesh = firstIntersect.object as ThreeType.Mesh;
         const userData = mesh.userData as { x?: number; y?: number };
         if (typeof userData.x === 'number' && typeof userData.y === 'number') {
           return { x: userData.x, y: userData.y };
@@ -904,12 +910,12 @@ export class Game {
     // Update or create lines for active attacks
     const tileSize = 5;
     for (const troopId of this.activeTargetLines) {
-      const troop = this.troopController.getAll().find(t => t.id === troopId); 
+      const troop = this.troopController.getAll().find(t => t.id === troopId);
       if (!troop || !troop.currentTargetId) {
         this.removeAttackVisual(troopId); // Troop or its target is gone
-        continue; 
+        continue;
       }
-      
+
       const currentTarget = this.enemyController.getAll().find(e => e.id === troop.currentTargetId);
       if (!currentTarget) {
         this.removeAttackVisual(troopId); // Target enemy not found (e.g., already removed)
@@ -1062,7 +1068,7 @@ export class Game {
     // Window listeners
     window.removeEventListener('resize', this.boundOnResize, false);
     window.removeEventListener('orientationchange', this.boundOnResize, false);
-    window.removeEventListener('touchstart', this.boundOnTouchStart, { passive: false } as EventListenerOptions);
+    window.removeEventListener('touchstart', this.boundOnTouchStart, { passive: false } as AddEventListenerOptions);
     window.removeEventListener('mousedown', this.boundOnMouseDown, false);
     window.removeEventListener('keydown', this.boundOnKeyDown);
 
@@ -1083,7 +1089,7 @@ export class Game {
     if (this.stats && this.stats.dom && this.stats.dom.parentElement) {
       this.stats.dom.parentElement.removeChild(this.stats.dom);
     }
-    
+
     // Potentially clear other resources, e.g., tell stage to release Three.js resources if necessary
     // For now, focus on event listeners.
     console.log('Game instance destroyed and listeners removed.');

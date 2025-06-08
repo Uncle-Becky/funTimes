@@ -30,6 +30,7 @@
   },
   "devDependencies": {
     "@eslint/js": "9.23.0",
+    "@types/animejs": "^3.1.13",
     "@types/express": "5.0.1",
     "@types/three": "0.137.0",
     "concurrently": "9.1.2",

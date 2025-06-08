@@ -10,62 +10,62 @@
             "name": "\u0000vite",
             "children": [
               {
-                "uid": "953752a0-1",
+                "uid": "8b873991-1",
                 "name": "modulepreload-polyfill.js"
               },
               {
-                "uid": "953752a0-5",
+                "uid": "8b873991-5",
                 "name": "preload-helper.js"
               }
             ]
           },
           {
-            "uid": "953752a0-3",
+            "uid": "8b873991-3",
             "name": "style.css"
           },
           {
             "name": "app/node_modules/@tweenjs/tween.js/dist/tween.esm.js",
-            "uid": "953752a0-7"
+            "uid": "8b873991-7"
           },
           {
-            "uid": "953752a0-9",
+            "uid": "8b873991-9",
             "name": "devvit.ts"
           },
           {
-            "uid": "953752a0-11",
+            "uid": "8b873991-11",
             "name": "stage.ts"
           },
           {
-            "uid": "953752a0-13",
+            "uid": "8b873991-13",
             "name": "ticker.ts"
           },
           {
             "name": "utils",
             "children": [
               {
-                "uid": "953752a0-15",
+                "uid": "8b873991-15",
                 "name": "enemyController.ts"
               },
               {
-                "uid": "953752a0-17",
+                "uid": "8b873991-17",
                 "name": "troopController.ts"
               },
               {
-                "uid": "953752a0-19",
+                "uid": "8b873991-19",
                 "name": "waveManager.ts"
               }
             ]
           },
           {
-            "uid": "953752a0-21",
+            "uid": "8b873991-21",
             "name": "game.ts"
           },
           {
-            "uid": "953752a0-23",
+            "uid": "8b873991-23",
             "name": "main.ts"
           },
           {
-            "uid": "953752a0-25",
+            "uid": "8b873991-25",
             "name": "index.html"
           }
         ]
@@ -75,7 +75,7 @@
         "children": [
           {
             "name": "app/node_modules/three/build/three.module.js",
-            "uid": "953752a0-27"
+            "uid": "8b873991-27"
           }
         ]
       },
@@ -84,7 +84,7 @@
         "children": [
           {
             "name": "app/node_modules/three/examples/jsm/libs/stats.module.js",
-            "uid": "953752a0-29"
+            "uid": "8b873991-29"
           }
         ]
       },
@@ -93,7 +93,7 @@
         "children": [
           {
             "name": "app/node_modules/animejs/lib/anime.esm.js",
-            "uid": "953752a0-31"
+            "uid": "8b873991-31"
           }
         ]
       }
@@ -101,361 +101,361 @@
     "isRoot": true
   },
   "nodeParts": {
-    "953752a0-1": {
+    "8b873991-1": {
       "renderedLength": 1280,
       "gzipLength": 0,
       "brotliLength": 0,
-      "metaUid": "953752a0-0"
+      "metaUid": "8b873991-0"
     },
-    "953752a0-3": {
+    "8b873991-3": {
       "renderedLength": 0,
       "gzipLength": 0,
       "brotliLength": 0,
-      "metaUid": "953752a0-2"
+      "metaUid": "8b873991-2"
     },
-    "953752a0-5": {
+    "8b873991-5": {
       "renderedLength": 1928,
       "gzipLength": 0,
       "brotliLength": 0,
-      "metaUid": "953752a0-4"
+      "metaUid": "8b873991-4"
     },
-    "953752a0-7": {
+    "8b873991-7": {
       "renderedLength": 20502,
       "gzipLength": 0,
       "brotliLength": 0,
-      "metaUid": "953752a0-6"
+      "metaUid": "8b873991-6"
     },
-    "953752a0-9": {
+    "8b873991-9": {
       "renderedLength": 1797,
       "gzipLength": 0,
       "brotliLength": 0,
-      "metaUid": "953752a0-8"
+      "metaUid": "8b873991-8"
     },
-    "953752a0-11": {
-      "renderedLength": 2890,
+    "8b873991-11": {
+      "renderedLength": 2818,
       "gzipLength": 0,
       "brotliLength": 0,
-      "metaUid": "953752a0-10"
+      "metaUid": "8b873991-10"
     },
-    "953752a0-13": {
+    "8b873991-13": {
       "renderedLength": 1253,
       "gzipLength": 0,
       "brotliLength": 0,
-      "metaUid": "953752a0-12"
+      "metaUid": "8b873991-12"
     },
-    "953752a0-15": {
-      "renderedLength": 2009,
+    "8b873991-15": {
+      "renderedLength": 1993,
       "gzipLength": 0,
       "brotliLength": 0,
-      "metaUid": "953752a0-14"
+      "metaUid": "8b873991-14"
     },
-    "953752a0-17": {
+    "8b873991-17": {
       "renderedLength": 1794,
       "gzipLength": 0,
       "brotliLength": 0,
-      "metaUid": "953752a0-16"
+      "metaUid": "8b873991-16"
     },
-    "953752a0-19": {
-      "renderedLength": 2278,
+    "8b873991-19": {
+      "renderedLength": 2311,
       "gzipLength": 0,
       "brotliLength": 0,
-      "metaUid": "953752a0-18"
+      "metaUid": "8b873991-18"
     },
-    "953752a0-21": {
-      "renderedLength": 31252,
+    "8b873991-21": {
+      "renderedLength": 31013,
       "gzipLength": 0,
       "brotliLength": 0,
-      "metaUid": "953752a0-20"
+      "metaUid": "8b873991-20"
     },
-    "953752a0-23": {
+    "8b873991-23": {
       "renderedLength": 925,
       "gzipLength": 0,
       "brotliLength": 0,
-      "metaUid": "953752a0-22"
+      "metaUid": "8b873991-22"
     },
-    "953752a0-25": {
+    "8b873991-25": {
       "renderedLength": 0,
       "gzipLength": 0,
       "brotliLength": 0,
-      "metaUid": "953752a0-24"
+      "metaUid": "8b873991-24"
     },
-    "953752a0-27": {
+    "8b873991-27": {
       "renderedLength": 1170514,
       "gzipLength": 0,
       "brotliLength": 0,
-      "metaUid": "953752a0-26"
+      "metaUid": "8b873991-26"
     },
-    "953752a0-29": {
+    "8b873991-29": {
       "renderedLength": 3490,
       "gzipLength": 0,
       "brotliLength": 0,
-      "metaUid": "953752a0-28"
+      "metaUid": "8b873991-28"
     },
-    "953752a0-31": {
+    "8b873991-31": {
       "renderedLength": 259418,
       "gzipLength": 0,
       "brotliLength": 0,
-      "metaUid": "953752a0-30"
+      "metaUid": "8b873991-30"
     }
   },
   "nodeMetas": {
-    "953752a0-0": {
+    "8b873991-0": {
       "id": "\u0000vite/modulepreload-polyfill.js",
       "moduleParts": {
-        "assets/index-1F4KrkEz.js": "953752a0-1"
+        "assets/index-1F4KrkEz.js": "8b873991-1"
       },
       "imported": [],
       "importedBy": [
         {
-          "uid": "953752a0-24"
+          "uid": "8b873991-24"
         }
       ]
     },
-    "953752a0-2": {
+    "8b873991-2": {
       "id": "/style.css",
       "moduleParts": {
-        "assets/index-1F4KrkEz.js": "953752a0-3"
+        "assets/index-1F4KrkEz.js": "8b873991-3"
       },
       "imported": [],
       "importedBy": [
         {
-          "uid": "953752a0-24"
+          "uid": "8b873991-24"
         }
       ]
     },
-    "953752a0-4": {
+    "8b873991-4": {
       "id": "\u0000vite/preload-helper.js",
       "moduleParts": {
-        "assets/index-1F4KrkEz.js": "953752a0-5"
+        "assets/index-1F4KrkEz.js": "8b873991-5"
       },
       "imported": [],
       "importedBy": [
         {
-          "uid": "953752a0-20"
+          "uid": "8b873991-20"
         }
       ]
     },
-    "953752a0-6": {
+    "8b873991-6": {
       "id": "/app/node_modules/@tweenjs/tween.js/dist/tween.esm.js",
       "moduleParts": {
-        "assets/index-1F4KrkEz.js": "953752a0-7"
+        "assets/index-1F4KrkEz.js": "8b873991-7"
       },
       "imported": [],
       "importedBy": [
         {
-          "uid": "953752a0-20"
+          "uid": "8b873991-20"
         },
         {
-          "uid": "953752a0-10"
+          "uid": "8b873991-10"
         }
       ]
     },
-    "953752a0-8": {
+    "8b873991-8": {
       "id": "/devvit.ts",
       "moduleParts": {
-        "assets/index-1F4KrkEz.js": "953752a0-9"
+        "assets/index-1F4KrkEz.js": "8b873991-9"
       },
       "imported": [],
       "importedBy": [
         {
-          "uid": "953752a0-20"
+          "uid": "8b873991-20"
         }
       ]
     },
-    "953752a0-10": {
+    "8b873991-10": {
       "id": "/stage.ts",
       "moduleParts": {
-        "assets/index-1F4KrkEz.js": "953752a0-11"
+        "assets/index-1F4KrkEz.js": "8b873991-11"
       },
       "imported": [
         {
-          "uid": "953752a0-6"
+          "uid": "8b873991-6"
         }
       ],
       "importedBy": [
         {
-          "uid": "953752a0-20"
+          "uid": "8b873991-20"
         }
       ]
     },
-    "953752a0-12": {
+    "8b873991-12": {
       "id": "/ticker.ts",
       "moduleParts": {
-        "assets/index-1F4KrkEz.js": "953752a0-13"
+        "assets/index-1F4KrkEz.js": "8b873991-13"
       },
       "imported": [],
       "importedBy": [
         {
-          "uid": "953752a0-20"
+          "uid": "8b873991-20"
         }
       ]
     },
-    "953752a0-14": {
+    "8b873991-14": {
       "id": "/utils/enemyController.ts",
       "moduleParts": {
-        "assets/index-1F4KrkEz.js": "953752a0-15"
+        "assets/index-1F4KrkEz.js": "8b873991-15"
       },
       "imported": [],
       "importedBy": [
         {
-          "uid": "953752a0-20"
+          "uid": "8b873991-20"
         }
       ]
     },
-    "953752a0-16": {
+    "8b873991-16": {
       "id": "/utils/troopController.ts",
       "moduleParts": {
-        "assets/index-1F4KrkEz.js": "953752a0-17"
+        "assets/index-1F4KrkEz.js": "8b873991-17"
       },
       "imported": [],
       "importedBy": [
         {
-          "uid": "953752a0-20"
+          "uid": "8b873991-20"
         }
       ]
     },
-    "953752a0-18": {
+    "8b873991-18": {
       "id": "/utils/waveManager.ts",
       "moduleParts": {
-        "assets/index-1F4KrkEz.js": "953752a0-19"
+        "assets/index-1F4KrkEz.js": "8b873991-19"
       },
       "imported": [],
       "importedBy": [
         {
-          "uid": "953752a0-20"
+          "uid": "8b873991-20"
         }
       ]
     },
-    "953752a0-20": {
+    "8b873991-20": {
       "id": "/game.ts",
       "moduleParts": {
-        "assets/index-1F4KrkEz.js": "953752a0-21"
+        "assets/index-1F4KrkEz.js": "8b873991-21"
       },
       "imported": [
         {
-          "uid": "953752a0-4"
+          "uid": "8b873991-4"
         },
         {
-          "uid": "953752a0-6"
+          "uid": "8b873991-6"
         },
         {
-          "uid": "953752a0-8"
+          "uid": "8b873991-8"
         },
         {
-          "uid": "953752a0-10"
+          "uid": "8b873991-10"
         },
         {
-          "uid": "953752a0-12"
+          "uid": "8b873991-12"
         },
         {
-          "uid": "953752a0-14"
+          "uid": "8b873991-14"
         },
         {
-          "uid": "953752a0-32"
+          "uid": "8b873991-32"
         },
         {
-          "uid": "953752a0-16"
+          "uid": "8b873991-16"
         },
         {
-          "uid": "953752a0-18"
+          "uid": "8b873991-18"
         },
         {
-          "uid": "953752a0-26",
+          "uid": "8b873991-26",
           "dynamic": true
         },
         {
-          "uid": "953752a0-28",
+          "uid": "8b873991-28",
           "dynamic": true
         },
         {
-          "uid": "953752a0-30",
+          "uid": "8b873991-30",
           "dynamic": true
         }
       ],
       "importedBy": [
         {
-          "uid": "953752a0-22"
+          "uid": "8b873991-22"
         }
       ]
     },
-    "953752a0-22": {
+    "8b873991-22": {
       "id": "/main.ts",
       "moduleParts": {
-        "assets/index-1F4KrkEz.js": "953752a0-23"
+        "assets/index-1F4KrkEz.js": "8b873991-23"
       },
       "imported": [
         {
-          "uid": "953752a0-20"
+          "uid": "8b873991-20"
         }
       ],
       "importedBy": [
         {
-          "uid": "953752a0-24"
+          "uid": "8b873991-24"
         }
       ]
     },
-    "953752a0-24": {
+    "8b873991-24": {
       "id": "/index.html",
       "moduleParts": {
-        "assets/index-1F4KrkEz.js": "953752a0-25"
+        "assets/index-1F4KrkEz.js": "8b873991-25"
       },
       "imported": [
         {
-          "uid": "953752a0-0"
+          "uid": "8b873991-0"
         },
         {
-          "uid": "953752a0-2"
+          "uid": "8b873991-2"
         },
         {
-          "uid": "953752a0-22"
+          "uid": "8b873991-22"
         }
       ],
       "importedBy": [],
       "isEntry": true
     },
-    "953752a0-26": {
+    "8b873991-26": {
       "id": "/app/node_modules/three/build/three.module.js",
       "moduleParts": {
-        "assets/three.module-7a0IT1WR.js": "953752a0-27"
+        "assets/three.module-7a0IT1WR.js": "8b873991-27"
       },
       "imported": [],
       "importedBy": [
         {
-          "uid": "953752a0-20"
+          "uid": "8b873991-20"
         }
       ]
     },
-    "953752a0-28": {
+    "8b873991-28": {
       "id": "/app/node_modules/three/examples/jsm/libs/stats.module.js",
       "moduleParts": {
-        "assets/stats.module-BL02l9NC.js": "953752a0-29"
+        "assets/stats.module-BL02l9NC.js": "8b873991-29"
       },
       "imported": [],
       "importedBy": [
         {
-          "uid": "953752a0-20"
+          "uid": "8b873991-20"
         }
       ]
     },
-    "953752a0-30": {
+    "8b873991-30": {
       "id": "/app/node_modules/animejs/lib/anime.esm.js",
       "moduleParts": {
-        "assets/anime.esm-C311E1AQ.js": "953752a0-31"
+        "assets/anime.esm-C311E1AQ.js": "8b873991-31"
       },
       "imported": [],
       "importedBy": [
         {
-          "uid": "953752a0-20"
+          "uid": "8b873991-20"
         }
       ]
     },
-    "953752a0-32": {
+    "8b873991-32": {
       "id": "/utils/env.ts",
       "moduleParts": {},
       "imported": [],
       "importedBy": [
         {
-          "uid": "953752a0-20"
+          "uid": "8b873991-20"
         }
       ]
     }

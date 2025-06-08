@@ -1,16 +1,17 @@
 import { Easing, Tween } from '@tweenjs/tween.js';
+import type * as ThreeType from 'three';
 import type { PostConfig } from '../shared/types/postConfig';
 
 export class Stage {
   private container: HTMLElement;
-  private scene: any; // THREE.Scene
-  private renderer!: any; // THREE.WebGLRenderer
-  public camera!: any; // THREE.OrthographicCamera
+  private scene!: ThreeType.Scene;
+  private renderer!: ThreeType.WebGLRenderer;
+  public camera!: ThreeType.OrthographicCamera;
 
   private config: PostConfig;
-  private THREE: any;
+  private THREE: typeof ThreeType;
 
-  constructor(config: PostConfig, devicePixelRatio: number, THREE: any) {
+  constructor(config: PostConfig, devicePixelRatio: number, THREE: typeof ThreeType) {
     this.config = config;
     this.THREE = THREE;
     this.container = document.getElementById('game') as HTMLElement;
@@ -37,19 +38,19 @@ export class Stage {
     this.renderer.setSize(width, height);
   }
 
-  public add(object: any /* THREE.Object3D */): void {
+  public add(object: ThreeType.Object3D): void {
     this.scene.add(object);
   }
 
-  public remove(object: any /* THREE.Object3D */): void {
+  public remove(object: ThreeType.Object3D): void {
     this.scene.remove(object);
   }
 
   public removeMeshesByType(type: string): void {
     const meshesToRemove = this.scene.children.filter(
-      (child: any) => child.userData.type === type && child instanceof this.THREE.Object3D
+      (child: ThreeType.Object3D) => child.userData.type === type && child instanceof this.THREE.Object3D
     );
-    meshesToRemove.forEach((mesh: any) => this.scene.remove(mesh));
+    meshesToRemove.forEach((mesh: ThreeType.Object3D) => this.scene.remove(mesh));
   }
 
   private setupRenderer(devicePixelRatio: number): void {
@@ -101,7 +102,7 @@ export class Stage {
       .start();
   }
 
-  public getCamera(): any /* THREE.OrthographicCamera */ {
+  public getCamera(): ThreeType.OrthographicCamera {
     return this.camera;
   }
 }

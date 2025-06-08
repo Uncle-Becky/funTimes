@@ -1,3 +1,4 @@
+import type * as ThreeType from 'three';
 import type { Enemy, EnemyType, Path } from '../../shared/types/game';
 
 /**
@@ -6,13 +7,13 @@ import type { Enemy, EnemyType, Path } from '../../shared/types/game';
  */
 export class EnemyController {
   private enemies: Enemy[] = [];
-  private enemyMeshes: Map<string, any> = new Map(); // THREE.Mesh
-  private THREE: any;
+  private enemyMeshes: Map<string, ThreeType.Mesh> = new Map();
+  private THREE: typeof ThreeType;
 
   constructor(
-    THREE: any,
-    private sceneAdd: (mesh: any /* THREE.Mesh */) => void,
-    private sceneRemove: (mesh: any /* THREE.Mesh */) => void
+    THREE: typeof ThreeType,
+    private sceneAdd: (mesh: ThreeType.Mesh) => void,
+    private sceneRemove: (mesh: ThreeType.Mesh) => void
   ) {
     this.THREE = THREE;
   }
@@ -21,7 +22,7 @@ export class EnemyController {
     return this.enemies;
   }
 
-  getMesh(id: string): any /* THREE.Mesh */ | undefined {
+  getMesh(id: string): ThreeType.Mesh | undefined {
     return this.enemyMeshes.get(id);
   }
 
@@ -85,13 +86,13 @@ export class EnemyController {
   }
 
   // --- Animation Stubs (to be implemented with Anime.js) ---
-  animateSpawn(mesh: any /* THREE.Mesh */): void {
+  animateSpawn(mesh: ThreeType.Mesh): void {
     // Animate spawn portal or effect
   }
-  animateMovement(mesh: any /* THREE.Mesh */): void {
+  animateMovement(mesh: ThreeType.Mesh): void {
     // Animate movement along spline or with effects
   }
-  animateDeath(mesh: any /* THREE.Mesh */): void {
+  animateDeath(mesh: ThreeType.Mesh): void {
     // Animate death explosion or fade
   }
 }
